@@ -131,7 +131,12 @@ def digest_due(
 
 
 def llm_intro(
-    digest: Digest, llm: LLMProvider, profile: ChannelProfile | None, db: Database, now: datetime
+    digest: Digest,
+    llm: LLMProvider,
+    profile: ChannelProfile | None,
+    db: Database,
+    now: datetime,
+    cfg: AppConfig,
 ) -> str | None:
     from radar.analyze.analyzer import load_prompt
 
@@ -146,7 +151,8 @@ def llm_intro(
         resp = llm.complete(
             system=load_prompt("digest"),
             prompt=json.dumps(payload, ensure_ascii=False),
-            max_tokens=600,
+            max_tokens=cfg.llm.light_max_tokens,
+            effort=cfg.llm.light_effort,
         )
     except LLMError as e:
         log.warning("digest_intro_failed", error=str(e)[:200])
@@ -176,7 +182,7 @@ def send_digest(
             name="digest", stats={"items": len(digest.items), "sent": 0}, message="уже отправлен"
         )
     intro = (
-        llm_intro(digest, llm, profile, db, now)
+        llm_intro(digest, llm, profile, db, now, cfg)
         if (llm and cfg.digest.use_llm_intro and digest.items)
         else None
     )

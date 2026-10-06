@@ -73,3 +73,36 @@ def test_fake_llm_analysis():
     r = llm.complete(system=f"... {ANALYSIS_MARKER}", prompt="x")
     assert "why_it_worked" in extract_json(r.text)
     assert len(llm.calls) == 1
+
+
+def test_effort_override_and_empty_max_tokens():
+    client, msgs = fake_client("max_tokens")
+    msgs.resp.content = [SimpleNamespace(type="thinking", thinking="")]
+    llm = AnthropicLLM("k", "m", LLMConfig(), client=client)
+    with pytest.raises(LLMError):
+        llm.complete(system="s", prompt="p", effort="low")
+    assert msgs.kwargs["output_config"] == {"effort": "low"}
+
+
+def test_light_tasks_use_low_effort(app, notifier, fake_llm, now, monkeypatch):
+    import radar.digest.build as b
+    from radar.schemas import Digest, DigestItem, VideoFormat
+
+    app.config.digest.use_llm_intro = True
+    item = DigestItem(
+        video_id="v",
+        niche_id="ai-tools",
+        niche_name="n",
+        title="t",
+        channel_title="c",
+        url="u",
+        format=VideoFormat.LONG,
+        ratio=5,
+        views=10,
+        age_days=1,
+        score=5,
+    )
+    digest = Digest(date=b.local_date(now, app.config), items=[item])
+    monkeypatch.setattr(b, "build_digest", lambda *a, **kw: digest)
+    b.send_digest(app.db, app.config, notifier, now, llm=fake_llm)
+    assert fake_llm.calls[0]["effort"] == "low" and fake_llm.calls[0]["max_tokens"] == 4000

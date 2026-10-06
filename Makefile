@@ -32,3 +32,32 @@ doctor:
 
 demo:
 	RADAR_FAKE=1 RADAR_DATA_DIR=data/demo RADAR_NOW=2026-10-06T06:00:00+00:00 uv run radar tick
+
+LAUNCH_DIR := $(HOME)/Library/LaunchAgents
+UID_NUM := $(shell id -u)
+
+.PHONY: launchd-install launchd-uninstall launchd-status logs-rotate-install
+
+launchd-install:
+	mkdir -p data/logs $(LAUNCH_DIR)
+	for job in tick bot; do \
+		sed "s#__PROJECT_DIR__#$(CURDIR)#g" deploy/com.outlierradar.$$job.plist > $(LAUNCH_DIR)/com.outlierradar.$$job.plist; \
+		launchctl bootout gui/$(UID_NUM)/com.outlierradar.$$job 2>/dev/null || true; \
+		launchctl bootstrap gui/$(UID_NUM) $(LAUNCH_DIR)/com.outlierradar.$$job.plist; \
+	done
+	@echo "Установлено. Статус: make launchd-status"
+
+launchd-uninstall:
+	for job in tick bot; do \
+		launchctl bootout gui/$(UID_NUM)/com.outlierradar.$$job 2>/dev/null || true; \
+		rm -f $(LAUNCH_DIR)/com.outlierradar.$$job.plist; \
+	done
+
+launchd-status:
+	@for job in tick bot; do \
+		echo "== $$job"; launchctl print gui/$(UID_NUM)/com.outlierradar.$$job 2>/dev/null | grep -E "state|last exit|runs" || echo "не установлен"; \
+	done
+
+logs-rotate-install:
+	sed "s#__PROJECT_DIR__#$(CURDIR)#g" deploy/outlierradar.newsyslog.conf | sudo tee /etc/newsyslog.d/outlierradar.conf >/dev/null
+	@echo "Ротация логов data/logs/*.log: 5 файлов по 10 МБ (newsyslog)"

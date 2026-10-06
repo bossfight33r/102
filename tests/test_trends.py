@@ -128,6 +128,7 @@ def test_trends_growing_patterns(app, now):
     assert ("format", "shorts") in names
     assert ("duration", "< 1 мин") in names
     assert ("format", "длинные") not in names
+    assert ("topic", "нейросетей") in names and ("topic", "обзор") not in names
     shorts = next(f for f in nt.features if f.name == "shorts")
     assert shorts.prev_lift is not None and shorts.lift > shorts.prev_lift
     text = render_trends_text(report)

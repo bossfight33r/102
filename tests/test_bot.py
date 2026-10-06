@@ -149,3 +149,44 @@ def test_dispatcher_only_admins(app, now, monkeypatch):
         assert len(session.requests) == 2
 
     asyncio.run(run())
+
+
+class FlakyPhotoSession(FakeSession):
+    """sendPhoto падает (битое превью) — нотифаер должен дослать текстом."""
+
+    async def make_request(self, bot, method, timeout=None):
+        self.requests.append(method)
+        if type(method).__name__ == "SendPhoto":
+            raise RuntimeError("bad photo")
+        return True
+
+
+def test_telegram_notifier_sends_to_all_admins():
+    from radar.bot.notifier import TelegramNotifier
+    from radar.schemas import Button, OutMessage
+
+    session = FlakyPhotoSession()
+    n = TelegramNotifier("123456:" + "A" * 35, [1, 2], session=session)
+    msgs = [
+        OutMessage(
+            text="<b>карточка</b>",
+            photo_url="https://i.ytimg.com/vi/x/hq.jpg",
+            buttons=[[Button(text="b", callback_data="fb:t:x")]],
+        ),
+        OutMessage(text="x" * 5000),  # длинный текст обрезается до лимита Telegram
+    ]
+    assert n.send(msgs) == 4
+    kinds = [type(m).__name__ for m in session.requests]
+    assert kinds.count("SendPhoto") == 2 and kinds.count("SendMessage") == 4
+    texts = [m.text for m in session.requests if type(m).__name__ == "SendMessage"]
+    assert all(len(t) <= 4096 for t in texts)
+    assert {m.chat_id for m in session.requests} == {1, 2}
+
+
+def test_telegram_notifier_requires_admins():
+    import pytest
+
+    from radar.bot.notifier import TelegramNotifier
+
+    with pytest.raises(ValueError):
+        TelegramNotifier("t", [])

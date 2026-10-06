@@ -72,6 +72,7 @@ DURATION_BUCKETS = [
 WEEKDAYS = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"]
 TIME_BUCKETS = [(6, "ночь 0–6"), (12, "утро 6–12"), (18, "день 12–18"), (24, "вечер 18–24")]
 CATEGORY_NAMES = {
+    "topic": "Темы",
     "title": "Заголовки",
     "format": "Форматы",
     "duration": "Длительность",
@@ -80,8 +81,117 @@ CATEGORY_NAMES = {
 }
 
 
+_WORD_RE = re.compile(r"[a-zа-яё][a-zа-яё0-9+#-]{2,}", re.I)
+STOPWORDS = set(
+    [
+        "это",
+        "как",
+        "что",
+        "для",
+        "все",
+        "всё",
+        "или",
+        "его",
+        "она",
+        "они",
+        "мне",
+        "меня",
+        "мой",
+        "моя",
+        "мои",
+        "вам",
+        "вас",
+        "ваш",
+        "без",
+        "про",
+        "под",
+        "над",
+        "при",
+        "так",
+        "уже",
+        "еще",
+        "ещё",
+        "чем",
+        "кто",
+        "где",
+        "когда",
+        "если",
+        "только",
+        "даже",
+        "вот",
+        "тут",
+        "там",
+        "нет",
+        "да",
+        "же",
+        "ли",
+        "бы",
+        "был",
+        "была",
+        "были",
+        "будет",
+        "быть",
+        "очень",
+        "можно",
+        "нужно",
+        "свой",
+        "свои",
+        "своя",
+        "самый",
+        "самые",
+        "сам",
+        "часть",
+        "день",
+        "дня",
+        "дней",
+        "раз",
+        "года",
+        "год",
+        "the",
+        "and",
+        "for",
+        "with",
+        "you",
+        "your",
+        "this",
+        "that",
+        "from",
+        "how",
+        "what",
+        "why",
+        "are",
+        "was",
+        "not",
+        "but",
+        "all",
+        "can",
+        "its",
+        "into",
+        "out",
+        "new",
+        "vs",
+        "video",
+        "shorts",
+    ]
+)
+STEM_LEN = 6
+
+
+def topic_stems(v: Video) -> dict[str, str]:
+    """Темы ролика: слова заголовка и теги → {основа: словоформа}. Основа — первые 6 букв."""
+    words = _WORD_RE.findall(v.title) + [w for tag in v.tags[:15] for w in _WORD_RE.findall(tag)]
+    out: dict[str, str] = {}
+    for w in words:
+        lw = w.lower().strip("-")
+        if len(lw) < 4 or lw in STOPWORDS:
+            continue
+        out.setdefault(lw[:STEM_LEN], lw)
+    return out
+
+
 def video_features(v: Video, tz: ZoneInfo) -> list[tuple[str, str]]:
     feats = [("title", name) for name, fn in TITLE_FEATURES.items() if fn(v.title)]
+    feats += [("topic", stem) for stem in topic_stems(v)]
     feats.append(("format", "shorts" if v.format == VideoFormat.SHORT else "длинные"))
     feats.append(
         ("duration", next(label for limit, label in DURATION_BUCKETS if v.duration_sec < limit))
@@ -124,13 +234,19 @@ def build_trends(db: Database, cfg: AppConfig, now: datetime, days: int) -> Tren
         prev = [v for v in vids if v.published_at < start]
         all_c, out_c, n_all, n_out = _period_counts(cur, outlier_ids, tz)
         p_all, p_out, pn_all, pn_out = _period_counts(prev, outlier_ids, tz)
+        forms: Counter[tuple[str, str]] = Counter(
+            (stem, word) for v in cur for stem, word in topic_stems(v).items()
+        )
+        display = {}
+        for (stem, word), _ in forms.most_common():
+            display.setdefault(stem, word)
         features = []
         for key, n_feat_out in out_c.items():
             prev_lift = _lift(p_out[key], pn_out, p_all[key], pn_all) if pn_out else None
             features.append(
                 TrendFeature(
                     category=key[0],
-                    name=key[1],
+                    name=display.get(key[1], key[1]) if key[0] == "topic" else key[1],
                     n_outliers=n_feat_out,
                     n_all=all_c[key],
                     outlier_share=round(n_feat_out / n_out, 3),
@@ -220,6 +336,7 @@ def content_hints(report: TrendReport) -> dict[str, object]:
                     ("duration", "durations"),
                     ("weekday", "publish_weekdays"),
                     ("time", "publish_times"),
+                    ("topic", "topics"),
                 )
             },
         }
@@ -389,7 +506,8 @@ def llm_summary(app: App, report: TrendReport, now: datetime) -> str | None:
         resp = app.llm.complete(
             system=load_prompt("trends"),
             prompt=json.dumps(payload, ensure_ascii=False),
-            max_tokens=800,
+            max_tokens=app.config.llm.light_max_tokens,
+            effort=app.config.llm.light_effort,
         )
     except LLMError as e:
         log.warning("trends_summary_failed", error=str(e)[:200])

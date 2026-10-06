@@ -46,7 +46,9 @@ analysis:
   use_thumbnails: true
 
 llm:
-  max_tokens: 4000
+  max_tokens: 16000         # для анализа; мышление модели тоже тратит этот лимит
+  light_effort: low          # вступление дайджеста, резюме трендов
+  light_max_tokens: 4000
   input_usd_per_mtok: 4.0    # цены модели из ANTHROPIC_MODEL, для учёта стоимости
   output_usd_per_mtok: 20.0
   effort: medium

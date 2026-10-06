@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Sequence
-from typing import Protocol
+from typing import Any, Protocol
 
 from radar.log import get_logger
 from radar.schemas import OutMessage
@@ -45,13 +45,14 @@ class ConsoleNotifier:
 
 
 class TelegramNotifier:
-    def __init__(self, token: str, admin_ids: Sequence[int]) -> None:
+    def __init__(self, token: str, admin_ids: Sequence[int], session: Any = None) -> None:
         if not token:
             raise ValueError("TELEGRAM_BOT_TOKEN не задан")
         if not admin_ids:
             raise ValueError("ADMIN_IDS пуст: некому отправлять")
         self._token = token
         self.admin_ids = list(admin_ids)
+        self._session = session  # тесты подставляют фейковую aiogram-сессию
 
     def send(self, messages: Sequence[OutMessage]) -> int:
         return asyncio.run(self._send_all(messages))
@@ -64,7 +65,11 @@ class TelegramNotifier:
         from radar.bot.keyboards import to_markup
 
         delivered = 0
-        bot = Bot(self._token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+        bot = Bot(
+            self._token,
+            session=self._session,
+            default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+        )
         try:
             for chat_id in self.admin_ids:
                 for m in messages:

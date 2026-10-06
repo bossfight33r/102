@@ -36,7 +36,7 @@ def run_discovery(
     yt: YouTube, db: Database, cfg: AppConfig, niches: list[Niche], now: datetime
 ) -> TaskResult:
     status = ChannelStatus.WATCHING if cfg.discovery.auto_approve else ChannelStatus.CANDIDATE
-    searches = added = rejected = 0
+    searches = added = rejected = linked = 0
     for niche in niches:
         if not niche.enabled:
             continue
@@ -67,6 +67,8 @@ def run_discovery(
                 continue
             searches += 1
             new_channel_ids |= {h.channel_id for h in hits if h.channel_id not in known}
+            for cid in {h.channel_id for h in hits if h.channel_id in known}:
+                linked += db.add_channel_niche(cid, niche.id)
         # Найденное дорогими search сохраняем, даже если следующий search отложен.
         try:
             channels = yt.get_channels(
@@ -92,12 +94,18 @@ def run_discovery(
         if deferred_msg:
             return TaskResult(
                 name="discovery",
-                stats={"searches": searches, "added": added, "rejected": rejected},
+                stats={
+                    "searches": searches,
+                    "added": added,
+                    "rejected": rejected,
+                    "linked": linked,
+                },
                 deferred=True,
                 message=deferred_msg,
             )
     return TaskResult(
-        name="discovery", stats={"searches": searches, "added": added, "rejected": rejected}
+        name="discovery",
+        stats={"searches": searches, "added": added, "rejected": rejected, "linked": linked},
     )
 
 

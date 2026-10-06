@@ -118,7 +118,9 @@ class AnalysisConfig(_Cfg):
 
 
 class LLMConfig(_Cfg):
-    max_tokens: int = 4_000
+    max_tokens: int = 16_000
+    light_effort: str | None = "low"
+    light_max_tokens: int = 4_000
     input_usd_per_mtok: float = 4.0
     output_usd_per_mtok: float = 20.0
     effort: str | None = "medium"

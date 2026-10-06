@@ -478,7 +478,9 @@ def doctor(
     if a.has_llm():
         if online:
             try:
-                r = a.llm.complete(system="Ответь одним словом.", prompt="ping", max_tokens=16)
+                r = a.llm.complete(
+                    system="Ответь одним словом.", prompt="ping", max_tokens=1024, effort="low"
+                )
                 line(True, f"LLM доступна: {r.model}, ${r.cost:.5f}")
             except Exception as e:
                 problems += 1

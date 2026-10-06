@@ -48,9 +48,18 @@ class FakeLLM:
         system: str,
         prompt: str,
         images: Sequence[ImageInput] = (),
-        max_tokens: int = 2000,
+        max_tokens: int = 4000,
+        effort: str | None = None,
     ) -> LLMResponse:
-        self.calls.append({"system": system, "prompt": prompt, "images": len(images)})
+        self.calls.append(
+            {
+                "system": system,
+                "prompt": prompt,
+                "images": len(images),
+                "effort": effort,
+                "max_tokens": max_tokens,
+            }
+        )
         if self.responder:
             text = self.responder(system, prompt)
         elif ANALYSIS_MARKER in system:

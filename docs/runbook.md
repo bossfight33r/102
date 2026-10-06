@@ -31,6 +31,7 @@ uv run radar quota
 `make demo` — tick на фикстурах (`RADAR_FAKE=1`, данные в `data/demo`), сообщения печатаются в консоль.
 
 ## launchd: tick каждые 15 минут
+Коротко: `make launchd-install` (tick + бот), `make launchd-status`, `make launchd-uninstall`; ротация логов — `make logs-rotate-install` (newsyslog, нужен sudo). Вручную:
 ```bash
 mkdir -p data/logs
 sed "s#__PROJECT_DIR__#$PWD#g" deploy/com.outlierradar.tick.plist > ~/Library/LaunchAgents/com.outlierradar.tick.plist

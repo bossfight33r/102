@@ -1,5 +1,13 @@
 # Changelog
 
+## [Доработки 2]
+- LLM: `llm.max_tokens` 16000 (мышление модели расходует лимит; пустой ответ при `max_tokens` → понятная ошибка); лёгкие задачи (вступление дайджеста, резюме трендов) — `effort: low`, `light_max_tokens`.
+- Тренды: категория «Темы» (слова заголовков и теги с lift) — в отчёте, `/trends` и `content_hints.yaml` (`topics`).
+- Discovery: известный канал, найденный по запросу другой ниши, получает и эту нишу.
+- TelegramNotifier: инъекция aiogram-сессии, тест рассылки всем админам и фоллбэка «фото → текст».
+- `make launchd-install|launchd-uninstall|launchd-status`, `make logs-rotate-install` (newsyslog).
+- SessionStart-хук `.claude/hooks/session-start.sh`: в облачных сессиях Claude Code сразу `uv sync`.
+
 ## [Доработки] Эксплуатация
 - БД v2: миграции по `user_version`; видео, которые API перестал возвращать (удалены/приватны), помечаются `gone_at` и больше не опрашиваются.
 - Канал с пустым/удалённым uploads-плейлистом помечается опрошенным — не тратит квоту каждый tick.

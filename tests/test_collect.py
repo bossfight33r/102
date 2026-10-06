@@ -167,3 +167,16 @@ def test_phase1_acceptance(app, fake_yt, now):
     assert total == app.db.count_quota_entries() + 99 * len(fake_yt.calls_of("search.list"))
     assert app.db.count_quota_entries() == len(fake_yt.calls)
     assert app.planner.used(now) <= app.config.quota.daily_budget
+
+
+def test_discovery_links_known_channel_to_new_niche(app, now):
+    from radar.schemas import Niche
+
+    add_seed_channels(app.youtube, app.db, app.db.list_niches(), now)  # techguru в ai-tools
+    other = Niche(
+        id="other", name="Другая", seed_queries=["нейросети для работы"], discovery_per_day=1
+    )
+    app.db.upsert_niche(other, now)
+    r = run_discovery(app.youtube, app.db, app.config, [other], now)
+    assert r.stats["linked"] >= 1
+    assert app.db.get_channel(TG).niche_ids == ["ai-tools", "other"]

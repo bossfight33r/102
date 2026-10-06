@@ -23,8 +23,11 @@ class LLMProvider(Protocol):
         system: str,
         prompt: str,
         images: Sequence[ImageInput] = (),
-        max_tokens: int = 2000,
-    ) -> LLMResponse: ...
+        max_tokens: int = 4000,
+        effort: str | None = None,
+    ) -> LLMResponse:
+        """effort переопределяет llm.effort из конфига. Мышление модели расходует max_tokens."""
+        ...
 
 
 _FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)```", re.S)

@@ -311,6 +311,17 @@ class Database:
     def channel_ids(self) -> set[str]:
         return {r["id"] for r in self._all("SELECT id FROM channels")}
 
+    def add_channel_niche(self, channel_id: str, niche_id: str) -> bool:
+        """Добавить нишу известному каналу. True — ниша была новой."""
+        ch = self.get_channel(channel_id)
+        if ch is None or niche_id in ch.niche_ids:
+            return False
+        self.conn.execute(
+            "UPDATE channels SET niche_ids=? WHERE id=?",
+            (_j(sorted({*ch.niche_ids, niche_id})), channel_id),
+        )
+        return True
+
     def set_channel_status(self, channel_id: str, status: ChannelStatus) -> bool:
         cur = self.conn.execute(
             "UPDATE channels SET status=? WHERE id=?", (status.value, channel_id)

@@ -51,7 +51,8 @@ avoid: [лицо в кадре, реакции]             # чего не де
 | analysis.comments_count | 20 | топ комментариев |
 | analysis.max_cost_usd_per_day | 1.0 | дневной лимит расходов на LLM |
 | analysis.use_thumbnails | true | отправлять превью как изображение |
-| llm.max_tokens | 4000 | лимит ответа |
+| llm.max_tokens | 16000 | лимит ответа анализа (включая мышление модели) |
+| llm.light_effort / light_max_tokens | low / 4000 | для вступления дайджеста и резюме трендов |
 | llm.input/output_usd_per_mtok | 4 / 20 | цены модели для учёта стоимости |
 | llm.effort | medium | output_config.effort (null — не передавать) |
 | llm.refusal_fallback | true | серверный fallback при отказе модели |

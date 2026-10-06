@@ -38,7 +38,8 @@ class AnthropicLLM:
         system: str,
         prompt: str,
         images: Sequence[ImageInput] = (),
-        max_tokens: int = 2000,
+        max_tokens: int = 4000,
+        effort: str | None = None,
     ) -> LLMResponse:
         content: list[dict[str, Any]] = [
             {
@@ -58,8 +59,8 @@ class AnthropicLLM:
             "system": system,
             "messages": [{"role": "user", "content": content}],
         }
-        if self.cfg.effort:
-            kwargs["output_config"] = {"effort": self.cfg.effort}
+        if effort or self.cfg.effort:
+            kwargs["output_config"] = {"effort": effort or self.cfg.effort}
         try:
             if self.cfg.refusal_fallback:
                 resp = self._client.beta.messages.create(
@@ -82,6 +83,10 @@ class AnthropicLLM:
         out_tok = int(getattr(usage, "output_tokens", 0) or 0)
         if resp.stop_reason == "max_tokens":
             log.warning("llm_max_tokens", model=resp.model, output_tokens=out_tok)
+            if not text.strip():
+                raise LLMError(
+                    "лимит max_tokens исчерпан до ответа (мышление модели) — увеличьте llm.max_tokens"
+                )
         return LLMResponse(
             text=text,
             model=str(resp.model),
