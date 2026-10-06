@@ -82,3 +82,26 @@ def test_tick_and_digest_cmds(cli_app):
     assert r.exit_code == 0 and "Дайджест" in r.output and "отправлен" in r.output
     r = runner.invoke(app, ["digest", "--send"])
     assert "уже отправлен" in r.output
+
+
+def test_bot_requires_token(cli_app):
+    r = runner.invoke(app, ["bot"])
+    assert r.exit_code == 1 and "TELEGRAM_BOT_TOKEN" in r.output
+
+
+def test_all_commands_registered():
+    r = runner.invoke(app, ["--help"])
+    for cmd in (
+        "discover",
+        "poll",
+        "score",
+        "outliers",
+        "analyze",
+        "digest",
+        "trends",
+        "quota",
+        "tick",
+        "bot",
+        "doctor",
+    ):
+        assert cmd in r.output, cmd

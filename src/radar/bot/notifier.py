@@ -34,10 +34,10 @@ class ConsoleNotifier:
     """Демо-режим (RADAR_FAKE): печатает сообщения в stdout вместо Telegram."""
 
     def send(self, messages: Sequence[OutMessage]) -> int:
-        import re
+        from radar.digest.render import plain
 
         for m in messages:
-            print(re.sub(r"<[^>]+>", "", m.text))
+            print(plain(m.text))
             if m.buttons:
                 print("  [" + "] [".join(b.text for row in m.buttons for b in row) + "]")
             print()

@@ -24,6 +24,7 @@ COMMANDS = [
     BotCommand(command="niches", description="Ниши"),
     BotCommand(command="candidates", description="Одобрение каналов"),
     BotCommand(command="quota", description="Квота YouTube API"),
+    BotCommand(command="trends", description="Тренды за неделю"),
 ]
 
 

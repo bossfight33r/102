@@ -2,27 +2,40 @@
 
 Новая сессия: прочитайте `CLAUDE.md` и этот файл, затем продолжайте с «Следующий шаг».
 
-## Готово
-- **Фаза 0 — Foundation**: структура, конфиг, схемы, БД, логирование с маскировкой секретов, YouTube-клиент (HTTP + фейк + квота), LLM (Anthropic + фейк), CLI-скелет, `radar doctor`, docs.
+## Готово (Фазы 0–5)
+- **Фаза 0 — Foundation**: конфиг (env + YAML), `schemas.py`, SQLite (append-only снимки на триггерах), structlog с маскировкой секретов, YouTube-клиент (HTTP с ретраями + фейк на фикстурах + QuotaPlanner), LLM (Anthropic с изображениями + FakeLLM), CLI, `radar doctor`.
+- **Фаза 1 — Сбор**: watchlist через uploads-плейлисты, снимки батчами по 50 по расписанию возраста, discovery в рамках `discovery_per_day` и бюджета, кандидаты, автоодобрение.
+- **Фаза 2 — Скоринг**: базлайн (медиана/MAD лог-просмотров, leave-one-out, reliable), ratio, robust z, velocity (история / prior), score, reason_flags, раздельные форматы.
+- **Фаза 3 — Анализ**: LLM с превью и топ-20 комментариев, строгая схема Analysis, кеш по хешу входа, учёт стоимости, дневной лимит.
+- **Фаза 4 — Дайджест/бот/экспорт/tick**: дайджест по нишам, бот только для ADMIN_IDS, кнопки → Feedback, `topic_suggestions.yaml`, идемпотентный tick, launchd-plist для tick и бота.
+- **Фаза 5 — Тренды**: `radar trends`, `/trends`, еженедельный отчёт в бот, `content_hints.yaml`, рекомендации по порогам из «Не то» в `threshold_recommendations.yaml`.
 
-- **Фаза 1 — Сбор**: watchlist, снимки, discovery, кандидаты, QuotaPlanner в задачах; `radar poll`, `radar discover`.
-
-- **Фаза 2 — Скоринг**: базлайны, ratio, z, velocity, score, reason_flags, раздельные форматы; `radar score`, `radar outliers`.
-
-- **Фаза 3 — Анализ**: LLM с превью и комментариями, строгая схема Analysis, кеш, учёт стоимости; `radar analyze`.
-
-- **Фаза 4 — Дайджест/бот/экспорт/tick**: дайджест, бот (только ADMIN_IDS), фидбэк, экспорт тем, идемпотентный tick, launchd.
+Проверки: `make lint` — зелёный; `make test` — 102 теста, зелёные, без сети (реальный HTTP в тестах запрещён фикстурой в `tests/conftest.py`).
 
 ## Не готово
-- Фаза 5.
+- Нет функциональных пробелов по ТЗ. Не проверено на реальных API (см. ниже).
 
 ## Блокеры
 - нет
 
 ## Проверить на Маке
+Окружение разработки без доступа к реальным YouTube/Anthropic/Telegram и без macOS — это проверяется вручную:
 ```bash
-make setup && uv run radar doctor
+make setup && $EDITOR .env config/niches.yaml config/channel_profile.yaml
+uv run radar doctor --online                     # ключи + реальный пинг LLM
+uv run radar channel add @<известный_канал>      # реальный channels.list (forHandle), 1 ед.
+uv run radar poll && uv run radar quota          # playlistItems/videos.list, учёт квоты
+uv run radar discover                            # search.list: проверить regionCode/relevanceLanguage
+uv run radar score && uv run radar outliers --days 30
+uv run radar analyze <VIDEO_ID>                  # Claude с изображением превью, стоимость в выводе
+uv run radar digest --send                       # карточки с превью и кнопками в Telegram
+uv run radar bot                                 # нажать кнопки, /candidates, /trends; с чужого аккаунта — тишина
+uv run radar trends --days 7 --llm
+# launchd — по docs/runbook.md, затем:
+launchctl print gui/$(id -u)/com.outlierradar.tick | grep -E "state|last exit"
+tail -n 50 data/logs/tick.err.log
 ```
+Что проверить глазами: серверный fallback Anthropic (`llm.refusal_fallback`) принимается выбранной моделью (если 400 — поставить `false`); `send_photo` по URL превью ytimg работает; цены `llm.*_usd_per_mtok` соответствуют модели.
 
 ## Следующий шаг
-Фаза 5 — тренды, еженедельный отчёт, рекомендации по порогам из фидбэка «Не то».
+Прогнать «Проверить на Маке» на реальных ключах; по первым дням данных подстроить `scoring.*` (см. `threshold_recommendations.yaml` после отметок «Не то») и `watchlist.interval_minutes` под квоту.

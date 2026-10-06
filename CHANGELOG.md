@@ -1,5 +1,11 @@
 # Changelog
 
+## [Фаза 5] Тренды
+- `trends.py`: lift признаков заголовков, форматов, длительностей, дня и времени публикации у аутлайеров против всех видео ниши, сравнение с прошлым окном.
+- `radar trends [--days] [--llm]`, команда бота `/trends`, еженедельный отчёт в бот (tick-задача `trends_weekly`), `data/exports/content_hints.yaml`.
+- Разбор фидбэка «Не то» → `data/exports/threshold_recommendations.yaml` (score_threshold, unreliable_factor, weight_velocity, min_views, формат ниши, скрытие канала); конфиг не меняется.
+- README, runbook, STATUS финализированы; тесты запрещают реальный HTTP.
+
 ## [Фаза 4] Дайджест, бот, фидбэк, экспорт, tick, launchd
 - `digest/`: топ-N свежих аутлайеров по нишам (фильтр формата ниши, скрытых каналов, «Не то», уже отправленных), карточки HTML с превью и кнопками, LLM-вступление (опционально), отправка один раз в сутки после `send_hour` по `timezone`.
 - `bot/`: aiogram 3; middleware пропускает только ADMIN_IDS; команды /digest /outliers /niches /candidates /quota; кнопки «В темы», «Подробнее», «Скрыть канал», «Не то» → Feedback; одобрение кандидатов.

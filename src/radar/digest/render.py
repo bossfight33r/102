@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from html import escape
+import re
+from html import escape, unescape
 
 from radar.bot.keyboards import feedback_buttons
 from radar.schemas import Analysis, Digest, DigestItem, OutMessage, Video
@@ -16,6 +17,11 @@ FLAG_LABELS = {
     "views_exceed_subs": "просмотры > подписчиков",
     "low_confidence": "мало данных",
 }
+
+
+def plain(html_text: str) -> str:
+    """HTML Telegram → обычный текст (для консоли)."""
+    return unescape(re.sub(r"<[^>]+>", "", html_text))
 
 
 def human(n: int) -> str:

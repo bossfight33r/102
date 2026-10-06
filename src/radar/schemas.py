@@ -289,3 +289,40 @@ class TaskResult(Model):
     stats: dict[str, int | float | str] = Field(default_factory=dict)
     deferred: bool = False
     message: str = ""
+
+
+# --- тренды и рекомендации ----------------------------------------------------------
+
+
+class TrendFeature(Model):
+    category: str  # title | format | duration | weekday | time
+    name: str
+    n_outliers: int
+    n_all: int
+    outlier_share: float
+    base_share: float
+    lift: float
+    prev_lift: float | None = None
+
+
+class NicheTrends(Model):
+    niche_id: str
+    niche_name: str
+    days: int
+    n_videos: int
+    n_outliers: int
+    features: list[TrendFeature] = Field(default_factory=list)
+
+
+class TrendReport(Model):
+    generated_at: datetime
+    days: int
+    niches: list[NicheTrends] = Field(default_factory=list)
+
+
+class ThresholdRecommendation(Model):
+    param: str
+    current: float | int | str | None = None
+    suggested: float | int | str | None = None
+    reason: str
+    evidence_n: int

@@ -147,6 +147,14 @@ def cmd_quota(app: App, now: datetime) -> str:
     return text
 
 
+def cmd_trends(app: App, now: datetime) -> str:
+    from radar.trends import build_trends, render_trends_text
+
+    return render_trends_text(build_trends(app.db, app.config, now, days=app.config.trends.days))[
+        :4096
+    ]
+
+
 # --- aiogram -------------------------------------------------------------------------
 
 
@@ -171,7 +179,7 @@ def _now() -> datetime:
 async def on_help(message: Message, app: App) -> None:
     await message.answer(
         "Outlier Radar. Команды:\n/digest — дайджест за сегодня\n/outliers — аутлайеры за 48 ч\n"
-        "/niches — ниши\n/candidates — одобрение каналов\n/quota — квота API"
+        "/niches — ниши\n/candidates — одобрение каналов\n/quota — квота API\n/trends — тренды за неделю"
     )
 
 
@@ -193,6 +201,10 @@ async def on_candidates(message: Message, app: App) -> None:
 
 async def on_quota(message: Message, app: App) -> None:
     await message.answer(cmd_quota(app, _now()))
+
+
+async def on_trends(message: Message, app: App) -> None:
+    await message.answer(cmd_trends(app, _now()))
 
 
 async def on_feedback(callback: CallbackQuery, app: App) -> None:
@@ -225,6 +237,7 @@ def build_router() -> Router:
     r.message.register(on_niches, Command("niches"))
     r.message.register(on_candidates, Command("candidates"))
     r.message.register(on_quota, Command("quota"))
+    r.message.register(on_trends, Command("trends"))
     r.callback_query.register(on_feedback, F.data.startswith("fb:"))
     r.callback_query.register(on_candidate, F.data.startswith("ch:"))
     return r

@@ -302,10 +302,8 @@ def digest(
     ] = False,
 ) -> None:
     """Дайджест за сегодня (по digest.timezone): топ аутлайеров по нишам."""
-    import re
-
     from radar.digest.build import build_digest, send_digest
-    from radar.digest.render import render_digest
+    from radar.digest.render import plain, render_digest
 
     a = get_app()
     now = current_time()
@@ -326,7 +324,7 @@ def digest(
         return
     d = build_digest(a.db, a.config, now, rebuild=rebuild)
     for m in render_digest(d):
-        typer.echo(re.sub(r"<[^>]+>", "", m.text))
+        typer.echo(plain(m.text))
         typer.echo("")
     typer.echo(
         f"Статус: {'отправлен ' + str(d.sent_at) if d.sent_at else 'не отправлен (radar digest --send)'}"
@@ -359,6 +357,30 @@ def bot() -> None:
         run_bot(get_app())
     except ConfigError as e:
         fail(str(e))
+
+
+@app.command()
+def trends(
+    days: Annotated[int, typer.Option("--days", help="Окно в днях")] = 7,
+    llm: Annotated[
+        bool, typer.Option("--llm", help="Добавить LLM-резюме (prompts/trends.md)")
+    ] = False,
+) -> None:
+    """Растущие паттерны заголовков, форматы, длительности, время публикации по нишам.
+
+    Пишет data/exports/content_hints.yaml и threshold_recommendations.yaml (по фидбэку «Не то»).
+    """
+    from radar.digest.render import plain
+    from radar.trends import render_recommendations, render_trends_text, run_trends
+
+    a = get_app()
+    report, recs, summary = run_trends(a, current_time(), days, with_llm=llm)
+    typer.echo(plain(render_trends_text(report, summary)))
+    typer.echo("")
+    typer.echo(plain(render_recommendations(recs)))
+    typer.echo(
+        f"\nЭкспорт: {a.settings.exports_dir}/content_hints.yaml, threshold_recommendations.yaml"
+    )
 
 
 # --- квота и диагностика --------------------------------------------------------

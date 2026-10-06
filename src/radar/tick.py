@@ -139,6 +139,18 @@ def _alerts(app: App, now: datetime) -> TaskResult:
     return TaskResult(name="alerts", stats={"sent": len(pending)})
 
 
+def _trends_due(app: App, now: datetime) -> bool:
+    from radar.trends import weekly_report_due
+
+    return weekly_report_due(app.db, app.config, now)
+
+
+def _trends(app: App, now: datetime) -> TaskResult:
+    from radar.trends import send_weekly_report
+
+    return send_weekly_report(app, now)
+
+
 TASKS: list[Task] = [
     Task("seed_channels", _seed_due, _seed),
     Task("watchlist", _watchlist_due, _watchlist),
@@ -147,6 +159,7 @@ TASKS: list[Task] = [
     Task("score", _score_due, _score),
     Task("analyze", _analyze_due, _analyze),
     Task("digest", _digest_due, _digest),
+    Task("trends_weekly", _trends_due, _trends),
     Task("alerts", _alerts_due, _alerts),
 ]
 
