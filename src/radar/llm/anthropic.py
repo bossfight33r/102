@@ -81,16 +81,19 @@ class AnthropicLLM:
         usage = resp.usage
         in_tok = int(getattr(usage, "input_tokens", 0) or 0)
         out_tok = int(getattr(usage, "output_tokens", 0) or 0)
-        if resp.stop_reason == "max_tokens":
-            log.warning("llm_max_tokens", model=resp.model, output_tokens=out_tok)
-            if not text.strip():
-                raise LLMError(
-                    "лимит max_tokens исчерпан до ответа (мышление модели) — увеличьте llm.max_tokens"
-                )
-        return LLMResponse(
+        result = LLMResponse(
             text=text,
             model=str(resp.model),
             input_tokens=in_tok,
             output_tokens=out_tok,
             cost=self.cost(in_tok, out_tok),
         )
+        if resp.stop_reason == "max_tokens":
+            log.warning("llm_max_tokens", model=resp.model, output_tokens=out_tok)
+            if not text.strip():
+                raise LLMError(
+                    f"лимит max_tokens={max_tokens} исчерпан до ответа (мышление модели) — "
+                    "увеличьте llm.max_tokens / llm.light_max_tokens",
+                    response=result,
+                )
+        return result

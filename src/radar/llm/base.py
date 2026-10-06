@@ -11,7 +11,15 @@ from radar.schemas import ImageInput, LLMResponse
 
 
 class LLMError(Exception):
-    """Ошибка провайдера: сеть, отказ модели, невалидный ответ."""
+    """Ошибка провайдера: сеть, отказ модели, невалидный ответ.
+
+    response — оплаченный ответ без полезного текста (например, max_tokens ушёл на мышление):
+    вызывающий код учитывает его стоимость в llm_usage.
+    """
+
+    def __init__(self, message: str, response: LLMResponse | None = None) -> None:
+        super().__init__(message)
+        self.response = response
 
 
 class LLMProvider(Protocol):

@@ -10,6 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from radar.delivery import give_up_delivery
 from radar.log import get_logger, redact_text
 from radar.schemas import OutMessage, TaskResult
 from radar.timeutil import iso
@@ -140,7 +141,9 @@ def _alerts_due(app: App, now: datetime) -> bool:
 
 def _alerts(app: App, now: datetime) -> TaskResult:
     pending = app.db.pending_alerts()
-    app.notifier.send([OutMessage(text=text) for _, text in pending])
+    delivered = app.notifier.send([OutMessage(text=text) for _, text in pending])
+    if delivered == 0 and not give_up_delivery(app.db, f"alerts:{now.date().isoformat()}"):
+        return TaskResult(name="alerts", stats={"sent": 0}, deferred=True)  # остаются в очереди
     for alert_id, _ in pending:
         app.db.mark_alert_sent(alert_id, now)
     return TaskResult(name="alerts", stats={"sent": len(pending)})

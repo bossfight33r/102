@@ -7,21 +7,14 @@ from collections.abc import Callable
 from pathlib import Path
 from urllib.parse import urlparse
 
-import httpx
-
 from radar.log import get_logger
 from radar.schemas import ImageInput, Video
+from radar.youtube.api import fetch_thumbnail
 
 log = get_logger(__name__)
 
 ALLOWED_HOST_SUFFIX = ".ytimg.com"
 MAX_BYTES = 2_000_000
-
-
-def _http_fetch(url: str) -> bytes:
-    resp = httpx.get(url, timeout=15.0, follow_redirects=False)
-    resp.raise_for_status()
-    return resp.content
 
 
 def _media_type(data: bytes) -> str:
@@ -33,7 +26,7 @@ def _media_type(data: bytes) -> str:
 
 
 class ThumbnailStore:
-    def __init__(self, cache_dir: Path, fetch: Callable[[str], bytes] = _http_fetch) -> None:
+    def __init__(self, cache_dir: Path, fetch: Callable[[str], bytes] = fetch_thumbnail) -> None:
         self.cache_dir = cache_dir
         self.fetch = fetch
 

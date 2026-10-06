@@ -22,6 +22,7 @@ from radar.schemas import (
     ChannelProfile,
     ChannelStatus,
     ImageInput,
+    LLMResponse,
     TaskResult,
     Video,
     VideoSnapshot,
@@ -190,24 +191,32 @@ class Analyzer:
                     "Верни только JSON строго по схеме."
                 )
             )
-            resp = self.llm.complete(
-                system=self.system, prompt=p, images=images, max_tokens=self.cfg.llm.max_tokens
-            )
+            try:
+                resp = self.llm.complete(
+                    system=self.system, prompt=p, images=images, max_tokens=self.cfg.llm.max_tokens
+                )
+            except LLMError as e:
+                if e.response:  # оплаченный, но пустой ответ — учитываем в дневном лимите
+                    self._record_usage(e.response, video_id, now)
+                raise
             cost += resp.cost
-            self.db.add_llm_usage(
-                f"analysis:{video_id}",
-                resp.model,
-                resp.input_tokens,
-                resp.output_tokens,
-                resp.cost,
-                now,
-            )
+            self._record_usage(resp, video_id, now)
             try:
                 return AnalysisDraft.model_validate(extract_json(resp.text)), resp.model, cost
             except (LLMError, ValidationError) as e:
                 error = str(e)
                 log.warning("analysis_invalid", video_id=video_id, attempt=attempt + 1)
         raise LLMError(f"ответ LLM не соответствует схеме Analysis: {error[:300]}")
+
+    def _record_usage(self, resp: LLMResponse, video_id: str, now: datetime) -> None:
+        self.db.add_llm_usage(
+            f"analysis:{video_id}",
+            resp.model,
+            resp.input_tokens,
+            resp.output_tokens,
+            resp.cost,
+            now,
+        )
 
     def pending(self, now: datetime) -> list[str]:
         """Аутлайеры выше порога анализа за последние 7 дней без актуального анализа."""

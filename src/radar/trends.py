@@ -16,8 +16,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from zoneinfo import ZoneInfo
 
+from radar.bot.notifier import TEXT_LIMIT as TELEGRAM_TEXT_LIMIT
 from radar.config import AppConfig
 from radar.db import Database
+from radar.delivery import give_up_delivery
 from radar.export.suggestions import HINTS_FILE, write_yaml
 from radar.log import get_logger
 from radar.schemas import (
@@ -82,98 +84,39 @@ CATEGORY_NAMES = {
 
 
 _WORD_RE = re.compile(r"[a-zа-яё][a-zа-яё0-9+#-]{2,}", re.I)
-STOPWORDS = set(
-    [
-        "это",
-        "как",
-        "что",
-        "для",
-        "все",
-        "всё",
-        "или",
-        "его",
-        "она",
-        "они",
-        "мне",
-        "меня",
-        "мой",
-        "моя",
-        "мои",
-        "вам",
-        "вас",
-        "ваш",
-        "без",
-        "про",
-        "под",
-        "над",
-        "при",
-        "так",
-        "уже",
-        "еще",
-        "ещё",
-        "чем",
-        "кто",
-        "где",
-        "когда",
-        "если",
-        "только",
-        "даже",
-        "вот",
-        "тут",
-        "там",
-        "нет",
-        "да",
-        "же",
-        "ли",
-        "бы",
-        "был",
-        "была",
-        "были",
-        "будет",
-        "быть",
-        "очень",
-        "можно",
-        "нужно",
-        "свой",
-        "свои",
-        "своя",
-        "самый",
-        "самые",
-        "сам",
-        "часть",
-        "день",
-        "дня",
-        "дней",
-        "раз",
-        "года",
-        "год",
-        "the",
-        "and",
-        "for",
-        "with",
-        "you",
-        "your",
-        "this",
-        "that",
-        "from",
-        "how",
-        "what",
-        "why",
-        "are",
-        "was",
-        "not",
-        "but",
-        "all",
-        "can",
-        "its",
-        "into",
-        "out",
-        "new",
-        "vs",
-        "video",
-        "shorts",
-    ]
-)
+# Слова короче 4 букв отсекаются в topic_stems, здесь только более длинные.
+STOPWORDS = {
+    "меня",
+    "когда",
+    "если",
+    "только",
+    "даже",
+    "была",
+    "были",
+    "будет",
+    "быть",
+    "очень",
+    "можно",
+    "нужно",
+    "свой",
+    "свои",
+    "своя",
+    "самый",
+    "самые",
+    "часть",
+    "день",
+    "дней",
+    "года",
+    "with",
+    "your",
+    "this",
+    "that",
+    "from",
+    "what",
+    "into",
+    "video",
+    "shorts",
+}
 STEM_LEN = 6
 
 
@@ -189,9 +132,11 @@ def topic_stems(v: Video) -> dict[str, str]:
     return out
 
 
-def video_features(v: Video, tz: ZoneInfo) -> list[tuple[str, str]]:
+def video_features(
+    v: Video, tz: ZoneInfo, stems: dict[str, str] | None = None
+) -> list[tuple[str, str]]:
     feats = [("title", name) for name, fn in TITLE_FEATURES.items() if fn(v.title)]
-    feats += [("topic", stem) for stem in topic_stems(v)]
+    feats += [("topic", stem) for stem in (topic_stems(v) if stems is None else stems)]
     feats.append(("format", "shorts" if v.format == VideoFormat.SHORT else "длинные"))
     feats.append(
         ("duration", next(label for limit, label in DURATION_BUCKETS if v.duration_sec < limit))
@@ -208,13 +153,20 @@ def _lift(n_feat_out: int, n_out: int, n_feat_all: int, n_all: int) -> float:
 
 
 def _period_counts(
-    videos: list[Video], outlier_ids: set[str], tz: ZoneInfo
+    videos: list[Video],
+    outlier_ids: set[str],
+    tz: ZoneInfo,
+    forms: Counter[tuple[str, str]] | None = None,
 ) -> tuple[Counter[tuple[str, str]], Counter[tuple[str, str]], int, int]:
+    """Счётчики признаков; forms (если передан) копит пары (основа темы, словоформа)."""
     all_c: Counter[tuple[str, str]] = Counter()
     out_c: Counter[tuple[str, str]] = Counter()
     n_out = 0
     for v in videos:
-        feats = video_features(v, tz)
+        stems = topic_stems(v)
+        if forms is not None:
+            forms.update(stems.items())
+        feats = video_features(v, tz, stems)
         all_c.update(feats)
         if v.id in outlier_ids:
             out_c.update(feats)
@@ -227,17 +179,16 @@ def build_trends(db: Database, cfg: AppConfig, now: datetime, days: int) -> Tren
     start, prev_start = now - timedelta(days=days), now - timedelta(days=2 * days)
     outlier_ids = {o.video_id for o in db.list_outliers(min_score=cfg.scoring.score_threshold)}
     report = TrendReport(generated_at=now, days=days)
+    recent = db.list_videos(published_after=prev_start)
     for niche in db.list_niches(enabled_only=True):
         chans = {c.id for c in db.list_channels(status=ChannelStatus.WATCHING, niche_id=niche.id)}
-        vids = [v for v in db.list_videos(published_after=prev_start) if v.channel_id in chans]
+        vids = [v for v in recent if v.channel_id in chans]
         cur = [v for v in vids if v.published_at >= start]
         prev = [v for v in vids if v.published_at < start]
-        all_c, out_c, n_all, n_out = _period_counts(cur, outlier_ids, tz)
+        forms: Counter[tuple[str, str]] = Counter()
+        all_c, out_c, n_all, n_out = _period_counts(cur, outlier_ids, tz, forms)
         p_all, p_out, pn_all, pn_out = _period_counts(prev, outlier_ids, tz)
-        forms: Counter[tuple[str, str]] = Counter(
-            (stem, word) for v in cur for stem, word in topic_stems(v).items()
-        )
-        display = {}
+        display: dict[str, str] = {}
         for (stem, word), _ in forms.most_common():
             display.setdefault(stem, word)
         features = []
@@ -273,7 +224,23 @@ def growing(nt: NicheTrends) -> list[TrendFeature]:
     return [f for f in nt.features if f.lift >= MIN_LIFT and f.n_outliers >= MIN_FEATURE_OUTLIERS]
 
 
-def render_trends_text(report: TrendReport, summary: str | None = None) -> str:
+def _join_limited(lines: list[str], limit: int) -> str:
+    """Склейка целых строк в пределах limit: обрезка посреди HTML-тега ломает разбор в Telegram."""
+    out: list[str] = []
+    size = 0
+    for line in lines:
+        add = len(line) + (1 if out else 0)
+        if size + add > limit - 2:
+            out.append("…")
+            break
+        out.append(line)
+        size += add
+    return "\n".join(out)
+
+
+def render_trends_text(
+    report: TrendReport, summary: str | None = None, limit: int = TELEGRAM_TEXT_LIMIT
+) -> str:
     lines = [f"📈 <b>Тренды за {report.days} дн.</b>"]
     if summary:
         lines.append(escape(summary))
@@ -304,7 +271,7 @@ def render_trends_text(report: TrendReport, summary: str | None = None) -> str:
                     f"{escape(f.name)} ×{f.lift:.1f} ({f.n_outliers}/{nt.n_outliers}){delta}"
                 )
             lines.append(f"  {CATEGORY_NAMES[cat]}: " + "; ".join(parts))
-    return "\n".join(lines)
+    return _join_limited(lines, limit)
 
 
 def content_hints(report: TrendReport) -> dict[str, object]:
@@ -468,7 +435,7 @@ def render_recommendations(recs: list[ThresholdRecommendation]) -> str:
     lines += [
         f"• {escape(r.param)}: {r.current} → {r.suggested} — {escape(r.reason)}" for r in recs
     ]
-    return "\n".join(lines)
+    return _join_limited(lines, 4096)
 
 
 # --- еженедельный отчёт ----------------------------------------------------------------
@@ -511,6 +478,8 @@ def llm_summary(app: App, report: TrendReport, now: datetime) -> str | None:
         )
     except LLMError as e:
         log.warning("trends_summary_failed", error=str(e)[:200])
+        if r := e.response:
+            app.db.add_llm_usage("trends", r.model, r.input_tokens, r.output_tokens, r.cost, now)
         return None
     app.db.add_llm_usage(
         "trends", resp.model, resp.input_tokens, resp.output_tokens, resp.cost, now
@@ -534,11 +503,19 @@ def send_weekly_report(app: App, now: datetime) -> TaskResult:
     report, recs, summary = run_trends(
         app, now, app.config.trends.days, with_llm=app.config.trends.use_llm
     )
-    msgs = [OutMessage(text=render_trends_text(report, summary)[:4096])]
+    msgs = [OutMessage(text=render_trends_text(report, summary))]
     if recs:
-        msgs.append(OutMessage(text=render_recommendations(recs)[:4096]))
+        msgs.append(OutMessage(text=render_recommendations(recs)))
     sent = app.notifier.send(msgs)
-    app.db.set_kv(WEEKLY_KEY, _week_id(now, app.config))
+    week = _week_id(now, app.config)
+    if sent == 0 and not give_up_delivery(app.db, f"trends:{week}"):
+        return TaskResult(
+            name="trends_weekly",
+            stats={"niches": len(report.niches), "recommendations": len(recs), "sent": 0},
+            deferred=True,
+            message="ни одно сообщение не доставлено",
+        )
+    app.db.set_kv(WEEKLY_KEY, week)
     return TaskResult(
         name="trends_weekly",
         stats={"niches": len(report.niches), "recommendations": len(recs), "sent": sent},

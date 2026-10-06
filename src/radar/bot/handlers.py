@@ -150,9 +150,7 @@ def cmd_quota(app: App, now: datetime) -> str:
 def cmd_trends(app: App, now: datetime) -> str:
     from radar.trends import build_trends, render_trends_text
 
-    return render_trends_text(build_trends(app.db, app.config, now, days=app.config.trends.days))[
-        :4096
-    ]
+    return render_trends_text(build_trends(app.db, app.config, now, days=app.config.trends.days))
 
 
 # --- aiogram -------------------------------------------------------------------------

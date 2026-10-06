@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 from radar.bot.notifier import Notifier
 from radar.config import AppConfig
 from radar.db import Database
+from radar.delivery import give_up_delivery
 from radar.llm.base import LLMError, LLMProvider
 from radar.log import get_logger
 from radar.schemas import (
@@ -156,6 +157,8 @@ def llm_intro(
         )
     except LLMError as e:
         log.warning("digest_intro_failed", error=str(e)[:200])
+        if r := e.response:
+            db.add_llm_usage("digest_intro", r.model, r.input_tokens, r.output_tokens, r.cost, now)
         return None
     db.add_llm_usage(
         "digest_intro", resp.model, resp.input_tokens, resp.output_tokens, resp.cost, now
@@ -187,5 +190,13 @@ def send_digest(
         else None
     )
     delivered = notifier.send(render_digest(digest, intro))
+    # Telegram недоступен: не помечаем отправленным, повторим на следующем tick (не бесконечно).
+    if delivered == 0 and not give_up_delivery(db, f"digest:{digest.date.isoformat()}"):
+        return TaskResult(
+            name="digest",
+            stats={"items": len(digest.items), "sent": 0},
+            deferred=True,
+            message="ни одно сообщение не доставлено",
+        )
     db.save_digest(digest.model_copy(update={"sent_at": now}))
     return TaskResult(name="digest", stats={"items": len(digest.items), "sent": delivered})

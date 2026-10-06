@@ -186,8 +186,16 @@ class Database:
         version = self.conn.execute("PRAGMA user_version").fetchone()[0]
         for target, script in _MIGRATIONS:
             if version < target:
-                self.conn.executescript(script)
-                self.conn.execute(f"PRAGMA user_version = {target}")
+                # Скрипт и user_version — одной транзакцией: обрыв между ними не оставит
+                # применённый ALTER при старой версии (повтор упал бы на duplicate column).
+                try:
+                    self.conn.executescript(
+                        f"BEGIN;\n{script}\nPRAGMA user_version = {target};\nCOMMIT;"
+                    )
+                except BaseException:
+                    if self.conn.in_transaction:
+                        self.conn.execute("ROLLBACK")
+                    raise
                 version = target
 
     @property
@@ -457,11 +465,20 @@ class Database:
         self, video_ids: Iterable[str] | None = None
     ) -> dict[str, list[VideoSnapshot]]:
         out: dict[str, list[VideoSnapshot]] = {}
-        rows = self._all("SELECT * FROM video_snapshots ORDER BY collected_at, id")
-        wanted = set(video_ids) if video_ids is not None else None
+        order = " ORDER BY collected_at, id"
+        if video_ids is None:
+            rows = self._all("SELECT * FROM video_snapshots" + order)
+        else:
+            ids = list(dict.fromkeys(video_ids))
+            rows = []
+            for i in range(0, len(ids), 500):  # фильтр в SQL по индексу, а не вся таблица
+                chunk = ids[i : i + 500]
+                marks = ",".join("?" * len(chunk))
+                rows += self._all(
+                    f"SELECT * FROM video_snapshots WHERE video_id IN ({marks})" + order, chunk
+                )
         for r in rows:
-            if wanted is None or r["video_id"] in wanted:
-                out.setdefault(r["video_id"], []).append(self._row_to_snapshot(r))
+            out.setdefault(r["video_id"], []).append(self._row_to_snapshot(r))
         return out
 
     def latest_snapshots(self) -> dict[str, VideoSnapshot]:

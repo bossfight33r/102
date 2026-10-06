@@ -162,3 +162,10 @@ def _error_reason(resp: httpx.Response) -> tuple[str, str]:
         return "", ""
     errors = err.get("errors") or [{}]
     return errors[0].get("reason", ""), str(err.get("message", ""))[:200]
+
+
+def fetch_thumbnail(url: str) -> bytes:
+    """Скачать превью с CDN YouTube (i.ytimg.com). Не вызов Data API — квоту не тратит."""
+    resp = httpx.get(url, timeout=15.0, follow_redirects=False)
+    resp.raise_for_status()
+    return resp.content

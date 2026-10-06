@@ -167,7 +167,10 @@ def refresh_channel_stats(yt: YouTube, db: Database, cfg: AppConfig, now: dateti
         fresh = yt.get_channels(stale, purpose="channel_stats", now=now)
     except (QuotaDeferred, QuotaExceededError):
         return 0
+    subs = {ch.id: ch.subs for ch in fresh}
     with db.tx():
-        for ch in fresh:
-            db.update_channel_subs(ch.id, ch.subs, now)
+        # Каналы, которых API не вернул (удалены/заблокированы), тоже помечаются обновлёнными,
+        # иначе channels.list повторяется на каждом tick.
+        for cid in stale:
+            db.update_channel_subs(cid, subs.get(cid), now)
     return len(fresh)
