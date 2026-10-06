@@ -1,5 +1,13 @@
 # Changelog
 
+## [Фаза 4] Дайджест, бот, фидбэк, экспорт, tick, launchd
+- `digest/`: топ-N свежих аутлайеров по нишам (фильтр формата ниши, скрытых каналов, «Не то», уже отправленных), карточки HTML с превью и кнопками, LLM-вступление (опционально), отправка один раз в сутки после `send_hour` по `timezone`.
+- `bot/`: aiogram 3; middleware пропускает только ADMIN_IDS; команды /digest /outliers /niches /candidates /quota; кнопки «В темы», «Подробнее», «Скрыть канал», «Не то» → Feedback; одобрение кандидатов.
+- `export/suggestions.py`: `data/exports/topic_suggestions.yaml` (атомарная запись, без дублей).
+- `tick.py`: задачи с due-функциями, изоляция ошибок, блокировка параллельных запусков, `last_tick_at`; алерты (quotaExceeded) уходят в бот.
+- `deploy/`: launchd-plist для tick (15 мин) и бота (KeepAlive); runbook.
+- CLI: `radar digest [--send] [--rebuild]`, `radar tick`, `radar bot`. Демо-режим печатает сообщения в консоль.
+
 ## [Фаза 3] Анализ
 - `analyze/analyzer.py`: метаданные, главы, динамика просмотров, превью (изображение), топ-20 комментариев, мой профиль → LLM → строгий `Analysis` (pydantic, extra=forbid), одна повторная попытка при невалидном ответе.
 - Кеш по хешу стабильных входов, учёт стоимости (`llm_usage`, `Analysis.cost`), дневной лимит расходов, бэкофф для упавших.

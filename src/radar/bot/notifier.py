@@ -30,6 +30,20 @@ class FakeNotifier:
         return len(messages)
 
 
+class ConsoleNotifier:
+    """Демо-режим (RADAR_FAKE): печатает сообщения в stdout вместо Telegram."""
+
+    def send(self, messages: Sequence[OutMessage]) -> int:
+        import re
+
+        for m in messages:
+            print(re.sub(r"<[^>]+>", "", m.text))
+            if m.buttons:
+                print("  [" + "] [".join(b.text for row in m.buttons for b in row) + "]")
+            print()
+        return len(messages)
+
+
 class TelegramNotifier:
     def __init__(self, token: str, admin_ids: Sequence[int]) -> None:
         if not token:

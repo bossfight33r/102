@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from radar.bot.notifier import FakeNotifier, Notifier, TelegramNotifier
+from radar.bot.notifier import ConsoleNotifier, Notifier, TelegramNotifier
 from radar.config import AppConfig, Settings, load_app_config, load_niches, load_profile
 from radar.db import Database
 from radar.llm.base import LLMProvider
@@ -115,7 +115,7 @@ class App:
     def notifier(self) -> Notifier:
         if self._notifier is None:
             if self.settings.radar_fake:
-                self._notifier = FakeNotifier()
+                self._notifier = ConsoleNotifier()
             else:
                 token = self.settings.telegram_bot_token
                 if token is None or not token.get_secret_value():

@@ -7,13 +7,24 @@ from datetime import datetime, timedelta
 from radar.config import AppConfig
 from radar.db import Database
 from radar.log import get_logger
-from radar.schemas import ChannelStatus, Niche, TaskResult, VideoSnapshot
+from radar.schemas import Channel, ChannelStatus, Niche, TaskResult, VideoSnapshot
 from radar.youtube.client import QuotaExceededError, YouTube, YouTubeAPIError
 from radar.youtube.quota import QuotaDeferred
 
 log = get_logger(__name__)
 
 SEED_RETRY_DAYS = 7
+
+
+def _seed_pending(db: Database, niche: Niche, ref: str, now: datetime) -> bool:
+    mark = db.get_kv(f"seed:{niche.id}:{ref.lower()}")
+    return not mark or (mark.startswith("notfound:") and _expired(mark, now))
+
+
+def seeds_pending(db: Database, niches: list[Niche], now: datetime) -> bool:
+    return any(
+        _seed_pending(db, n, ref, now) for n in niches if n.enabled for ref in n.seed_channels
+    )
 
 
 def add_seed_channels(yt: YouTube, db: Database, niches: list[Niche], now: datetime) -> TaskResult:
@@ -24,8 +35,7 @@ def add_seed_channels(yt: YouTube, db: Database, niches: list[Niche], now: datet
             continue
         for ref in niche.seed_channels:
             key = f"seed:{niche.id}:{ref.lower()}"
-            mark = db.get_kv(key)
-            if mark and not (mark.startswith("notfound:") and _expired(mark, now)):
+            if not _seed_pending(db, niche, ref, now):
                 continue
             try:
                 ch = yt.resolve_channel(
@@ -54,6 +64,32 @@ def _expired(mark: str, now: datetime) -> bool:
     return (now.date() - day).days >= SEED_RETRY_DAYS
 
 
+def due_channels(
+    db: Database, cfg: AppConfig, now: datetime, *, force: bool = False
+) -> list[Channel]:
+    interval = timedelta(minutes=cfg.watchlist.interval_minutes)
+    times = db.channel_poll_times()
+    return [
+        c
+        for c in db.list_channels(status=ChannelStatus.WATCHING)
+        if force or times[c.id][0] is None or now - times[c.id][0] >= interval  # type: ignore[operator]
+    ]
+
+
+def stale_subs(db: Database, cfg: AppConfig, now: datetime) -> list[str]:
+    max_age = timedelta(hours=cfg.watchlist.channel_refresh_hours)
+    times = db.channel_poll_times()
+    return [
+        c.id
+        for c in db.list_channels(status=ChannelStatus.WATCHING)
+        if times[c.id][1] is None or now - times[c.id][1] >= max_age  # type: ignore[operator]
+    ]
+
+
+def watchlist_due(db: Database, cfg: AppConfig, now: datetime) -> bool:
+    return bool(due_channels(db, cfg, now) or stale_subs(db, cfg, now))
+
+
 def poll_watchlist(
     yt: YouTube, db: Database, cfg: AppConfig, now: datetime, *, force: bool = False
 ) -> TaskResult:
@@ -62,15 +98,7 @@ def poll_watchlist(
     Первая страница плейлиста (до 50 видео, 1 ед.) даёт и свежие ролики, и историю для базлайна.
     Канал помечается опрошенным только после сохранения его видео — при откладывании повторим.
     """
-    interval = timedelta(minutes=cfg.watchlist.interval_minutes)
-    poll_times = db.channel_poll_times()
-    due = [
-        c
-        for c in db.list_channels(status=ChannelStatus.WATCHING)
-        if force
-        or poll_times.get(c.id, (None, None))[0] is None
-        or now - poll_times[c.id][0] >= interval  # type: ignore[operator]
-    ]
+    due = due_channels(db, cfg, now, force=force)
     listed: list[str] = []
     new_ids: list[str] = []
     deferred_msg = ""
@@ -130,13 +158,7 @@ def poll_watchlist(
 
 def refresh_channel_stats(yt: YouTube, db: Database, cfg: AppConfig, now: datetime) -> int:
     """Подписчики watching-каналов раз в channel_refresh_hours (channels.list батчами по 50)."""
-    max_age = timedelta(hours=cfg.watchlist.channel_refresh_hours)
-    times = db.channel_poll_times()
-    stale = [
-        c.id
-        for c in db.list_channels(status=ChannelStatus.WATCHING)
-        if times[c.id][1] is None or now - times[c.id][1] >= max_age  # type: ignore[operator]
-    ]
+    stale = stale_subs(db, cfg, now)
     if not stale:
         return 0
     try:

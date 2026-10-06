@@ -167,7 +167,7 @@ def channel_hide(channel_id: str) -> None:
 
 def _print_result(r: TaskResult) -> None:
     stats = ", ".join(f"{k}={v}" for k, v in r.stats.items())
-    suffix = f" — отложено: {r.message}" if r.deferred else ""
+    suffix = f" — отложено: {r.message}" if r.deferred else (f" — {r.message}" if r.message else "")
     typer.echo(f"{r.name}: {stats}{suffix}")
 
 
@@ -287,6 +287,78 @@ def analyze(
         fail(str(e))
         return
     typer.echo(format_analysis(an))
+
+
+# --- дайджест, tick, бот ----------------------------------------------------------
+
+
+@app.command()
+def digest(
+    send: Annotated[
+        bool, typer.Option("--send", help="Отправить в Telegram (если ещё не отправлен)")
+    ] = False,
+    rebuild: Annotated[
+        bool, typer.Option("--rebuild", help="Пересобрать неотправленный дайджест")
+    ] = False,
+) -> None:
+    """Дайджест за сегодня (по digest.timezone): топ аутлайеров по нишам."""
+    import re
+
+    from radar.digest.build import build_digest, send_digest
+    from radar.digest.render import render_digest
+
+    a = get_app()
+    now = current_time()
+    if send:
+        try:
+            _print_result(
+                send_digest(
+                    a.db,
+                    a.config,
+                    a.notifier,
+                    now,
+                    llm=a.llm if a.has_llm() else None,
+                    profile=a.profile,
+                )
+            )
+        except ConfigError as e:
+            fail(str(e))
+        return
+    d = build_digest(a.db, a.config, now, rebuild=rebuild)
+    for m in render_digest(d):
+        typer.echo(re.sub(r"<[^>]+>", "", m.text))
+        typer.echo("")
+    typer.echo(
+        f"Статус: {'отправлен ' + str(d.sent_at) if d.sent_at else 'не отправлен (radar digest --send)'}"
+    )
+
+
+@app.command()
+def tick() -> None:
+    """Выполнить все задачи с наступившим сроком (для launchd, каждые 15 минут)."""
+    from radar.tick import TickLocked, run_tick
+
+    a = get_app()
+    try:
+        results = run_tick(a, current_time())
+    except TickLocked as e:
+        typer.echo(str(e))
+        return
+    if not results:
+        typer.echo("Нечего делать: все задачи выполнены.")
+    for r in results:
+        _print_result(r)
+
+
+@app.command()
+def bot() -> None:
+    """Запустить Telegram-бота (отдельный процесс, long polling)."""
+    from radar.bot.main import run_bot
+
+    try:
+        run_bot(get_app())
+    except ConfigError as e:
+        fail(str(e))
 
 
 # --- квота и диагностика --------------------------------------------------------

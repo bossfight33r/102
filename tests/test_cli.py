@@ -70,3 +70,15 @@ def test_analyze_cmd(cli_app):
     assert "Идея для моего канала" in r.output and "Отличие от оригинала" in r.output
     r = runner.invoke(app, ["analyze", "nope"])
     assert r.exit_code == 1
+
+
+def test_tick_and_digest_cmds(cli_app):
+    r = runner.invoke(app, ["tick"])
+    assert r.exit_code == 0, r.output
+    assert "digest:" in r.output and "watchlist:" in r.output
+    r = runner.invoke(app, ["tick"])
+    assert "Нечего делать" in r.output
+    r = runner.invoke(app, ["digest"])
+    assert r.exit_code == 0 and "Дайджест" in r.output and "отправлен" in r.output
+    r = runner.invoke(app, ["digest", "--send"])
+    assert "уже отправлен" in r.output

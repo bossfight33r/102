@@ -83,3 +83,22 @@ def cli_app(app: App, monkeypatch: pytest.MonkeyPatch) -> Iterator[App]:
     monkeypatch.setattr(cli, "app_factory", lambda: app)
     yield app
     cli.reset_app()
+
+
+@pytest.fixture(autouse=True)
+def _no_real_network(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Любая попытка реального HTTP в тестах — ошибка (MockTransport не затрагивается)."""
+    import httpx
+
+    def deny(*a: object, **kw: object) -> None:
+        raise AssertionError("реальный сетевой запрос в тесте")
+
+    monkeypatch.setattr(httpx.HTTPTransport, "handle_request", deny)
+    monkeypatch.setattr(httpx.AsyncHTTPTransport, "handle_async_request", deny)
+    try:
+        import httpx2
+
+        monkeypatch.setattr(httpx2.HTTPTransport, "handle_request", deny)
+        monkeypatch.setattr(httpx2.AsyncHTTPTransport, "handle_async_request", deny)
+    except (ImportError, AttributeError):
+        pass

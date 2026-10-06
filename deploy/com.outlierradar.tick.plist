@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- radar tick каждые 15 минут. Замените __PROJECT_DIR__ на абсолютный путь к репозиторию
+     (см. docs/runbook.md: sed + launchctl bootstrap). -->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.outlierradar.tick</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/zsh</string>
+        <string>-lc</string>
+        <string>cd "__PROJECT_DIR__" &amp;&amp; uv run radar tick</string>
+    </array>
+    <key>WorkingDirectory</key>
+    <string>__PROJECT_DIR__</string>
+    <key>StartInterval</key>
+    <integer>900</integer>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StandardOutPath</key>
+    <string>__PROJECT_DIR__/data/logs/tick.log</string>
+    <key>StandardErrorPath</key>
+    <string>__PROJECT_DIR__/data/logs/tick.err.log</string>
+    <key>ProcessType</key>
+    <string>Background</string>
+</dict>
+</plist>
