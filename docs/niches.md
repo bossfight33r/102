@@ -68,6 +68,7 @@ avoid: [лицо в кадре, реакции]             # чего не де
 | digest.use_llm_intro | false | короткое вступление от LLM (prompts/digest.md) |
 | trends.days | 7 | окно трендов |
 | trends.weekly_weekday / weekly_hour | 0 / 10 | еженедельный отчёт (0 = пн, время по digest.timezone) |
+| bot.watchdog_minutes / watchdog_check_minutes | 60 / 10 | алерт из бота, если tick не запускался дольше N минут (0 — выкл) |
 | trends.use_llm | false | LLM-резюме трендов (prompts/trends.md) |
 
 ## .env — секреты

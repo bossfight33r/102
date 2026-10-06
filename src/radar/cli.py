@@ -274,7 +274,7 @@ def analyze(
     video_id: str,
     force: Annotated[bool, typer.Option("--force", help="Игнорировать кеш")] = False,
 ) -> None:
-    """Анализ ролика LLM (кешируется: без изменения входа повторно не анализирует)."""
+    """Анализ ролика LLM по id или ссылке (любой ролик; кешируется — повторно не анализирует)."""
     from radar.analyze.analyzer import AnalysisBudgetExceeded
     from radar.llm.base import LLMError
     from radar.youtube.client import QuotaExceededError
@@ -282,8 +282,18 @@ def analyze(
 
     a = get_app()
     try:
-        an = a.analyzer().analyze(video_id, current_time(), force=force)
-    except (ConfigError, LLMError, AnalysisBudgetExceeded, QuotaDeferred, QuotaExceededError) as e:
+        from radar.collect.adhoc import ensure_video
+
+        video = ensure_video(a.youtube, a.db, video_id, current_time())
+        an = a.analyzer().analyze(video.id, current_time(), force=force)
+    except (
+        ConfigError,
+        LLMError,
+        AnalysisBudgetExceeded,
+        QuotaDeferred,
+        QuotaExceededError,
+        ValueError,
+    ) as e:
         fail(str(e))
         return
     typer.echo(format_analysis(an))
@@ -399,6 +409,23 @@ def quota() -> None:
         typer.echo(f"⏸ Пауза после quotaExceeded до {st['paused_until']}")
     for method, purpose, calls, units in st["breakdown"]:  # type: ignore[union-attr]
         typer.echo(f"  {method:<22} {purpose:<28} вызовов {calls:<5} ед. {units}")
+    from radar.bot.handlers import llm_spend_line
+
+    typer.echo(llm_spend_line(a, current_time()))
+
+
+@app.command()
+def topics() -> None:
+    """Темы, отмеченные кнопкой «В темы» (data/exports/topic_suggestions.yaml)."""
+    a = get_app()
+    items = a.db.list_topic_suggestions()
+    if not items:
+        typer.echo("Тем пока нет — нажимайте «📌 В темы» в дайджесте.")
+    for i, t in enumerate(items, 1):
+        typer.echo(f"{i}. {t.title}\n   {t.why}")
+        for p in t.key_points:
+            typer.echo(f"   • {p}")
+        typer.echo(f"   источник: {', '.join('https://youtu.be/' + v for v in t.source_video_ids)}")
 
 
 @app.command()

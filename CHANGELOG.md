@@ -1,5 +1,12 @@
 # Changelog
 
+## [Эксплуатация с телефона]
+- `/analyze <ссылка|id>` в боте и `radar analyze <ссылка>`: разбор любого ролика, не только из watchlist (`collect/adhoc.py`, 1 ед. квоты на метаданные). Ссылки watch, youtu.be, shorts, live, embed.
+- `/add @канал [ниша]` — канал в watchlist из бота.
+- Расход LLM за 24 ч и 7 дней в `/quota` и `radar quota`.
+- Watchdog в процессе бота: алерт, если tick не запускался дольше `bot.watchdog_minutes` (по умолчанию 60), один на простой.
+- `radar topics` — темы, отмеченные «В темы».
+
 ## [Надёжность]
 - Промпты явно помечают заголовки, описания и комментарии YouTube как данные, а не инструкции (защита от prompt injection).
 - Интеграционный тест: весь tick через настоящий `HttpYouTubeClient` на MockTransport с фикстурами — проверка путей, `part`, `forHandle`, `playlistId`, `regionCode`, лимита 50 id, учёта квоты и паузы после quotaExceeded.

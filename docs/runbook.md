@@ -63,6 +63,9 @@ plist запускает `zsh -lc`, чтобы подхватить PATH с `uv`
 | дайджест не пришёл | `radar digest` — собран ли, `sent_at`; `radar doctor` — токен и ADMIN_IDS; логи `tick.err.log` |
 | аутлайеров нет | мало истории: базлайну нужны видео старше 7 дней (`radar channel list`, `radar outliers --days 30`) |
 
+## Бот
+Команды: `/digest`, `/outliers`, `/niches`, `/candidates`, `/quota` (квота + расход LLM), `/trends`, `/analyze <ссылка>` (любой ролик, 1–2 ед. квоты + LLM), `/add @канал [ниша]`. Watchdog внутри бота присылает алерт, если `radar tick` не запускался дольше `bot.watchdog_minutes` (Мак спал, launchd выгружен) — по одному на каждый простой.
+
 ## Данные
 - БД: `data/radar.db` (SQLite, WAL). Бэкап: `sqlite3 data/radar.db ".backup data/backup.db"`.
 - Экспорт: `data/exports/topic_suggestions.yaml`, `content_hints.yaml`, `threshold_recommendations.yaml`.

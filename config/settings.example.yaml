@@ -77,3 +77,7 @@ trends:
   weekly_weekday: 0          # 0 = понедельник
   weekly_hour: 10
   use_llm: false
+
+bot:
+  watchdog_minutes: 60       # tick не запускался дольше — алерт из процесса бота (0 — выкл)
+  watchdog_check_minutes: 10

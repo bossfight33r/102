@@ -155,6 +155,11 @@ class TrendsConfig(_Cfg):
     use_llm: bool = False
 
 
+class BotConfig(_Cfg):
+    watchdog_minutes: int = Field(default=60, ge=0, description="0 — выключить")
+    watchdog_check_minutes: int = Field(default=10, ge=1)
+
+
 class AppConfig(_Cfg):
     quota: QuotaConfig = Field(default_factory=QuotaConfig)
     snapshots: SnapshotConfig = Field(default_factory=SnapshotConfig)
@@ -166,6 +171,7 @@ class AppConfig(_Cfg):
     watchlist: WatchlistConfig = Field(default_factory=WatchlistConfig)
     digest: DigestConfig = Field(default_factory=DigestConfig)
     trends: TrendsConfig = Field(default_factory=TrendsConfig)
+    bot: BotConfig = Field(default_factory=BotConfig)
 
 
 def resolve_config_file(config_dir: Path, name: str) -> Path | None:

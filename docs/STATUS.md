@@ -10,9 +10,9 @@
 - **Фаза 4 — Дайджест/бот/экспорт/tick**: дайджест по нишам, бот только для ADMIN_IDS, кнопки → Feedback, `topic_suggestions.yaml`, идемпотентный tick, launchd-plist для tick и бота.
 - **Фаза 5 — Тренды**: `radar trends`, `/trends`, еженедельный отчёт в бот, `content_hints.yaml`, рекомендации по порогам из «Не то» в `threshold_recommendations.yaml`.
 
-- **Доработки**: миграции БД, пропавшие видео, пустые плейлисты, дайджест ждёт анализ, алерты об ошибках tick, CI; лимиты LLM под мышление модели, темы в трендах, make-цели launchd, ротация логов, SessionStart-хук; исправления по ревью кода (доставка с лимитом попыток, атомарные миграции, учёт стоимости пустых ответов LLM).
+- **Доработки**: миграции БД, пропавшие видео, пустые плейлисты, дайджест ждёт анализ, алерты об ошибках tick, CI; лимиты LLM под мышление модели, темы в трендах, make-цели launchd, ротация логов, SessionStart-хук; исправления по ревью кода (доставка с лимитом попыток, атомарные миграции, учёт стоимости пустых ответов LLM); `/analyze <ссылка>`, `/add`, расход LLM в `/quota`, watchdog tick, `radar topics`.
 
-Проверки: `make lint` — зелёный; `make test` — 122 теста (включая интеграционный прогон tick через настоящий HTTP-клиент на MockTransport) (Python 3.12 и 3.13), зелёные, без сети (реальный HTTP в тестах запрещён фикстурой в `tests/conftest.py`).
+Проверки: `make lint` — зелёный; `make test` —  тестов (включая интеграционный прогон tick через настоящий HTTP-клиент на MockTransport) (Python 3.12 и 3.13), зелёные, без сети (реальный HTTP в тестах запрещён фикстурой в `tests/conftest.py`).
 
 ## Не готово
 - Нет функциональных пробелов по ТЗ. Не проверено на реальных API (см. ниже).
@@ -31,7 +31,8 @@ uv run radar discover                            # search.list: проверит
 uv run radar score && uv run radar outliers --days 30
 uv run radar analyze <VIDEO_ID>                  # Claude с изображением превью, стоимость в выводе
 uv run radar digest --send                       # карточки с превью и кнопками в Telegram
-uv run radar bot                                 # нажать кнопки, /candidates, /trends; с чужого аккаунта — тишина
+uv run radar bot                                 # кнопки, /candidates, /trends, /analyze <ссылка>, /add @канал; с чужого аккаунта — тишина
+# watchdog: make launchd-uninstall на 1+ ч при запущенном боте → должен прийти алерт «tick не запускался»
 uv run radar trends --days 7 --llm
 # launchd — по docs/runbook.md, затем:
 launchctl print gui/$(id -u)/com.outlierradar.tick | grep -E "state|last exit"

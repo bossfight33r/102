@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Awaitable, Callable, Sequence
 from datetime import datetime, timedelta
 from html import escape
 from typing import TYPE_CHECKING, Any
 
 from aiogram import BaseMiddleware, F, Router
-from aiogram.filters import Command
+from aiogram.filters import Command, CommandObject
 from aiogram.types import CallbackQuery, Message, TelegramObject
 
 from radar.bot.keyboards import CODE_ACTIONS, candidate_buttons, parse_callback, to_markup
@@ -144,7 +145,82 @@ def cmd_quota(app: App, now: datetime) -> str:
     )
     if st["paused_until"]:
         text += f"\n⏸ пауза до {st['paused_until']}"
-    return text
+    return text + "\n" + llm_spend_line(app, now)
+
+
+def llm_spend_line(app: App, now: datetime) -> str:
+    day = app.db.llm_cost_since(now - timedelta(hours=24))
+    week = app.db.llm_cost_since(now - timedelta(days=7))
+    limit = app.config.analysis.max_cost_usd_per_day
+    return f"LLM: ${day:.2f} за 24 ч (лимит ${limit:.2f}), ${week:.2f} за 7 дней"
+
+
+def cmd_analyze(app: App, ref: str, now: datetime) -> list[OutMessage]:
+    """Разбор любого ролика по ссылке/id. Блокирующий (LLM) — вызывать из потока."""
+    from radar.analyze.analyzer import AnalysisBudgetExceeded
+    from radar.collect.adhoc import ensure_video
+    from radar.llm.base import LLMError
+    from radar.youtube.client import QuotaExceededError
+    from radar.youtube.quota import QuotaDeferred
+
+    if not ref.strip():
+        return [OutMessage(text="Использование: /analyze &lt;ссылка или id ролика&gt;")]
+    try:
+        video = ensure_video(app.youtube, app.db, ref, now)
+        analysis = app.analyzer().analyze(video.id, now)
+    except (ValueError, LLMError, AnalysisBudgetExceeded, QuotaDeferred, QuotaExceededError) as e:
+        return [OutMessage(text=f"Не получилось: {escape(str(e))}")]
+    except Exception as e:  # ConfigError и прочее — без трейсбека в чат
+        log.warning("bot_analyze_failed", error=type(e).__name__)
+        return [
+            OutMessage(text=f"Не получилось: {escape(type(e).__name__)}: {escape(str(e))[:300]}")
+        ]
+    return [OutMessage(text=render_analysis(analysis, video)[:4096])]
+
+
+def cmd_add_channel(app: App, args: str, now: datetime) -> str:
+    """/add @handle [ниша] — сразу в watchlist (1 ед. квоты)."""
+    from radar.youtube.client import QuotaExceededError, YouTubeAPIError
+    from radar.youtube.quota import QuotaDeferred
+
+    parts = args.split()
+    if not parts:
+        return "Использование: /add @handle [id_ниши]"
+    ref, niche_ids = parts[0], parts[1:2]
+    if niche_ids and app.db.get_niche(niche_ids[0]) is None:
+        return f"Ниша {escape(niche_ids[0])} не найдена (/niches)"
+    try:
+        ch = app.youtube.resolve_channel(ref, purpose="bot:add", now=now, niche_ids=niche_ids)
+    except (QuotaDeferred, QuotaExceededError, YouTubeAPIError) as e:
+        return f"Не получилось: {escape(str(e))}"
+    if ch is None:
+        return f"Канал {escape(ref)} не найден"
+    saved = app.db.upsert_channel(ch, now, keep_status=False)
+    return f"✅ {escape(saved.title)} в watchlist (подписчиков: {human(saved.subs or 0)})"
+
+
+WATCHDOG_KEY = "watchdog_alerted_for"
+
+
+def stale_tick_alert(app: App, now: datetime) -> str | None:
+    """Текст алерта, если tick давно не запускался. Один алерт на каждый «застой»."""
+    from radar.timeutil import parse_dt
+
+    limit = app.config.bot.watchdog_minutes
+    last_raw = app.db.get_kv("last_tick_at")
+    if not limit or not last_raw:
+        return None
+    last = parse_dt(last_raw)
+    if now - last < timedelta(minutes=limit):
+        return None
+    if app.db.get_kv(WATCHDOG_KEY) == last_raw:
+        return None
+    app.db.set_kv(WATCHDOG_KEY, last_raw)
+    hours = (now - last).total_seconds() / 3600
+    return (
+        f"⏰ radar tick не запускался {hours:.1f} ч (последний {last_raw}). "
+        "Проверьте launchd: make launchd-status, логи data/logs/tick.err.log"
+    )
 
 
 def cmd_trends(app: App, now: datetime) -> str:
@@ -177,7 +253,8 @@ def _now() -> datetime:
 async def on_help(message: Message, app: App) -> None:
     await message.answer(
         "Outlier Radar. Команды:\n/digest — дайджест за сегодня\n/outliers — аутлайеры за 48 ч\n"
-        "/niches — ниши\n/candidates — одобрение каналов\n/quota — квота API\n/trends — тренды за неделю"
+        "/niches — ниши\n/candidates — одобрение каналов\n/quota — квота API и расход LLM\n/trends — тренды за неделю\n"
+        "/analyze &lt;ссылка&gt; — разобрать любой ролик\n/add @канал [ниша] — в watchlist"
     )
 
 
@@ -203,6 +280,15 @@ async def on_quota(message: Message, app: App) -> None:
 
 async def on_trends(message: Message, app: App) -> None:
     await message.answer(cmd_trends(app, _now()))
+
+
+async def on_analyze(message: Message, app: App, command: CommandObject) -> None:
+    await message.answer("⏳ Разбираю ролик…")
+    await send_out(message, await asyncio.to_thread(cmd_analyze, app, command.args or "", _now()))
+
+
+async def on_add(message: Message, app: App, command: CommandObject) -> None:
+    await message.answer(await asyncio.to_thread(cmd_add_channel, app, command.args or "", _now()))
 
 
 async def on_feedback(callback: CallbackQuery, app: App) -> None:
@@ -236,6 +322,8 @@ def build_router() -> Router:
     r.message.register(on_candidates, Command("candidates"))
     r.message.register(on_quota, Command("quota"))
     r.message.register(on_trends, Command("trends"))
+    r.message.register(on_analyze, Command("analyze"))
+    r.message.register(on_add, Command("add"))
     r.callback_query.register(on_feedback, F.data.startswith("fb:"))
     r.callback_query.register(on_candidate, F.data.startswith("ch:"))
     return r
