@@ -31,6 +31,7 @@ audience_level: intermediate     # для кого снимаю
 style: спокойный разбор, экран + голос
 can_show: [запись экрана, свои проекты]   # что умею показывать
 avoid: [лицо в кадре, реакции]             # чего не делаю
+channel: "@my_handle"                      # необязательно: для radar me и /me
 ```
 
 ## settings.yaml

@@ -243,6 +243,19 @@ def stale_tick_alert(app: App, now: datetime) -> str | None:
     )
 
 
+def cmd_me(app: App, now: datetime) -> str:
+    from radar.collect.mine import my_channel_report, render_my_report
+    from radar.youtube.client import QuotaExceededError, YouTubeAPIError
+    from radar.youtube.quota import QuotaDeferred
+
+    if app.profile is None:
+        return "Нет config/channel_profile.yaml"
+    try:
+        return render_my_report(my_channel_report(app.youtube, app.profile, app.config, now))
+    except (ValueError, QuotaDeferred, QuotaExceededError, YouTubeAPIError) as e:
+        return f"Не получилось: {escape(str(e))}"
+
+
 def cmd_questions(app: App, now: datetime) -> str:
     from radar.trends import audience_questions, render_questions
 
@@ -279,7 +292,7 @@ def _now() -> datetime:
 async def on_help(message: Message, app: App) -> None:
     await message.answer(
         "Outlier Radar. Команды:\n/digest — дайджест за сегодня\n/outliers [ниша] — аутлайеры за 48 ч\n"
-        "/niches — ниши\n/candidates — одобрение каналов\n/quota — квота API и расход LLM\n/trends — тренды за неделю\n/questions — вопросы зрителей за неделю\n"
+        "/niches — ниши\n/candidates — одобрение каналов\n/quota — квота API и расход LLM\n/trends — тренды за неделю\n/questions — вопросы зрителей за неделю\n/me — мой канал против моей медианы\n"
         "/analyze &lt;ссылка&gt; — разобрать любой ролик\n/add @канал [ниша] — в watchlist"
     )
 
@@ -307,6 +320,12 @@ async def on_quota(message: Message, app: App) -> None:
 
 async def on_trends(message: Message, app: App) -> None:
     await message.answer(cmd_trends(app, _now()))
+
+
+async def on_me(message: Message, app: App) -> None:
+    await message.answer(
+        await asyncio.to_thread(cmd_me, app, _now()), disable_web_page_preview=True
+    )
 
 
 async def on_questions(message: Message, app: App) -> None:
@@ -355,6 +374,7 @@ def build_router() -> Router:
     r.message.register(on_trends, Command("trends"))
     r.message.register(on_analyze, Command("analyze"))
     r.message.register(on_questions, Command("questions"))
+    r.message.register(on_me, Command("me"))
     r.message.register(on_add, Command("add"))
     r.callback_query.register(on_feedback, F.data.startswith("fb:"))
     r.callback_query.register(on_candidate, F.data.startswith("ch:"))

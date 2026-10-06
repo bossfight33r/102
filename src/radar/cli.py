@@ -467,6 +467,26 @@ def questions(days: Annotated[int, typer.Option("--days")] = 7) -> None:
 
 
 @app.command()
+def me(top: Annotated[int, typer.Option("--top")] = 10) -> None:
+    """Мой канал против моей медианы (channel в channel_profile.yaml; 3 ед. квоты)."""
+    from radar.collect.mine import my_channel_report, render_my_report
+    from radar.digest.render import plain
+    from radar.youtube.client import QuotaExceededError, YouTubeAPIError
+    from radar.youtube.quota import QuotaDeferred
+
+    a = get_app()
+    if a.profile is None:
+        fail("нет config/channel_profile.yaml")
+        return
+    try:
+        report = my_channel_report(a.youtube, a.profile, a.config, current_time())
+    except (ValueError, ConfigError, QuotaDeferred, QuotaExceededError, YouTubeAPIError) as e:
+        fail(str(e))
+        return
+    typer.echo(plain(render_my_report(report, top)))
+
+
+@app.command()
 def topics() -> None:
     """Темы, отмеченные кнопкой «В темы» (data/exports/topic_suggestions.yaml)."""
     a = get_app()

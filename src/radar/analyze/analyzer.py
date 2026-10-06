@@ -37,6 +37,7 @@ log = get_logger(__name__)
 PROMPTS_DIR = Path(__file__).resolve().parent.parent / "prompts"
 PENDING_WINDOW = timedelta(days=7)
 FAILURE_BACKOFF = timedelta(hours=24)
+RECENT_IDEAS = 15
 DESCRIPTION_LIMIT = 3_000
 
 
@@ -53,7 +54,7 @@ def input_hash(video: Video, profile: ChannelProfile, model: str, prompt: str) -
     а повторный анализ из-за прироста просмотров не нужен (ADR 0010)."""
     payload = {
         "video": video.model_dump(mode="json", exclude={"published_at"}),
-        "profile": profile.model_dump(mode="json"),
+        "profile": profile.model_dump(mode="json", exclude={"channel"}),
         "model": model,
         "prompt": hashlib.sha256(prompt.encode()).hexdigest(),
     }
@@ -136,7 +137,15 @@ class Analyzer:
                 "views_over_time": dynamics(video, self.db.snapshots_for(video.id)),
             },
             "top_comments": comments,
-            "my_channel": self.profile.model_dump(mode="json"),
+            "niches": [
+                {"id": n.id, "name": n.name}
+                for nid in (channel.niche_ids if channel else [])
+                if (n := self.db.get_niche(nid))
+            ],
+            "my_channel": self.profile.model_dump(mode="json", exclude={"channel"}),
+            "already_planned_ideas": [t.title for t in self.db.list_topic_suggestions()][
+                -RECENT_IDEAS:
+            ],
         }
 
     def _check_budget(self, now: datetime) -> None:

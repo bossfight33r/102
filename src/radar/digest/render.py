@@ -31,6 +31,7 @@ FLAG_LABELS = {
 
 def plain(html_text: str) -> str:
     """HTML Telegram → обычный текст (для консоли)."""
+    html_text = re.sub(r'<a href="([^"]+)">(.*?)</a>', r"\2 (\1)", html_text)
     return unescape(re.sub(r"<[^>]+>", "", html_text))
 
 

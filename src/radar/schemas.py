@@ -72,6 +72,9 @@ class ChannelProfile(Model):
     style: str
     can_show: list[str] = Field(default_factory=list)
     avoid: list[str] = Field(default_factory=list)
+    channel: str | None = Field(
+        default=None, description="@handle или id моего канала для radar me"
+    )
 
 
 # --- данные YouTube -----------------------------------------------------------
@@ -343,3 +346,26 @@ class ThresholdRecommendation(Model):
     suggested: float | int | str | None = None
     reason: str
     evidence_n: int
+
+
+# --- мой канал ---------------------------------------------------------------------
+
+
+class MyVideoScore(Model):
+    video_id: str
+    title: str
+    format: VideoFormat
+    age_days: float
+    views: int
+    ratio: float | None = None
+    z_score: float | None = None
+    score: float | None = None
+    is_outlier: bool = False
+
+
+class MyChannelReport(Model):
+    channel_id: str
+    channel_title: str
+    subs: int | None = None
+    baselines: list[ChannelBaseline] = Field(default_factory=list)
+    videos: list[MyVideoScore] = Field(default_factory=list)

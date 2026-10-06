@@ -25,6 +25,7 @@ COMMANDS = [
     BotCommand(command="candidates", description="Одобрение каналов"),
     BotCommand(command="quota", description="Квота YouTube API"),
     BotCommand(command="trends", description="Тренды за неделю"),
+    BotCommand(command="me", description="Мой канал против моей медианы"),
     BotCommand(command="questions", description="Вопросы зрителей за неделю"),
     BotCommand(command="analyze", description="Разобрать ролик по ссылке"),
     BotCommand(command="add", description="Добавить канал в watchlist"),
