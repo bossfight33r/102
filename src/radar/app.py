@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from radar.bot.notifier import FakeNotifier, Notifier, TelegramNotifier
 from radar.config import AppConfig, Settings, load_app_config, load_niches, load_profile
@@ -15,6 +16,9 @@ from radar.schemas import ChannelProfile, Niche
 from radar.timeutil import parse_dt, utcnow
 from radar.youtube.client import YouTube, YouTubeClient
 from radar.youtube.quota import QuotaPlanner
+
+if TYPE_CHECKING:
+    from radar.analyze.analyzer import Analyzer
 
 
 class ConfigError(Exception):
@@ -119,12 +123,27 @@ class App:
                 self._notifier = TelegramNotifier(token.get_secret_value(), self.settings.admin_ids)
         return self._notifier
 
+    def analyzer(self) -> Analyzer:
+        from radar.analyze.analyzer import Analyzer
+        from radar.analyze.thumbnails import ThumbnailStore
+
+        if self.profile is None:
+            raise ConfigError("нет config/channel_profile.yaml — анализ невозможен")
+        thumbs = ThumbnailStore(self.settings.cache_dir / "thumbs")
+        if self.settings.radar_fake:
+            thumbs.fetch = _no_network
+        return Analyzer(self.db, self.youtube, self.llm, self.config, self.profile, thumbs)
+
     def sync_niches(self, now: datetime) -> list[Niche]:
         """Ниши из niches.yaml upsert-ятся в БД (YAML побеждает); добавленные через CLI остаются."""
         with self.db.tx():
             for n in self.yaml_niches:
                 self.db.upsert_niche(n, now)
         return self.db.list_niches()
+
+
+def _no_network(url: str) -> bytes:
+    raise ConnectionError("RADAR_FAKE: сеть отключена")
 
 
 def current_time() -> datetime:

@@ -1,5 +1,12 @@
 # Changelog
 
+## [Фаза 3] Анализ
+- `analyze/analyzer.py`: метаданные, главы, динамика просмотров, превью (изображение), топ-20 комментариев, мой профиль → LLM → строгий `Analysis` (pydantic, extra=forbid), одна повторная попытка при невалидном ответе.
+- Кеш по хешу стабильных входов, учёт стоимости (`llm_usage`, `Analysis.cost`), дневной лимит расходов, бэкофф для упавших.
+- `analyze/thumbnails.py`: кеш превью в `data/cache/thumbs`, только *.ytimg.com. `analyze/comments.py`.
+- Промпты `prompts/analyze.md` (адаптация паттерна, не копирование), `digest.md`, `trends.md`.
+- CLI: `radar analyze VIDEO_ID [--force]`.
+
 ## [Фаза 2] Скоринг
 - Базлайн канала по формату: медиана и MAD лог-просмотров последних N зрелых видео, leave-one-out, reliable при малой выборке.
 - ratio, robust z (лог-шкала), velocity (по истории снимков или вогнутый prior), итоговый score с весами из конфига, порог min_views.

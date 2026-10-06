@@ -59,3 +59,14 @@ def test_poll_score_outliers(cli_app):
     assert "sbBREAKOUT1" in r.output and "tgLONGOUT01" in r.output and "tgSHORTOUT1" not in r.output
     r = runner.invoke(app, ["discover"])
     assert "searches=2" in r.output
+
+
+def test_analyze_cmd(cli_app):
+    runner.invoke(app, ["channel", "add", "@techguru"])
+    runner.invoke(app, ["poll"])
+    runner.invoke(app, ["score"])
+    r = runner.invoke(app, ["analyze", "tgLONGOUT01"])
+    assert r.exit_code == 0, r.output
+    assert "Идея для моего канала" in r.output and "Отличие от оригинала" in r.output
+    r = runner.invoke(app, ["analyze", "nope"])
+    assert r.exit_code == 1

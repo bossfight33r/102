@@ -9,7 +9,7 @@ from typing import Annotated
 import typer
 
 from radar.app import App, ConfigError, current_time
-from radar.schemas import ChannelStatus, FormatPref, Niche, TaskResult, VideoFormat
+from radar.schemas import Analysis, ChannelStatus, FormatPref, Niche, TaskResult, VideoFormat
 
 app = typer.Typer(
     help="Outlier Radar: аутлайеры YouTube → идеи для моего канала.", no_args_is_help=True
@@ -246,6 +246,47 @@ def outliers(
             break
     if not shown:
         typer.echo("Аутлайеров нет (radar poll → radar score).")
+
+
+# --- анализ ---------------------------------------------------------------------
+
+
+def format_analysis(an: Analysis) -> str:
+    w = an.why_it_worked
+    idea = an.idea_for_my_channel
+    lines = [
+        f"Почему зашло: {w.title_pattern}; тема — {w.topic}; формат — {w.format}; длительность — {w.duration}",
+        f"Превью: {', '.join(w.thumbnail_elements) or '—'}",
+        f"Хук: {an.hook_formula}",
+        "Вопросы зрителей: " + ("; ".join(an.audience_questions) or "—"),
+        f"Идея для моего канала: {idea.title}",
+        f"  {idea.pitch}",
+        f"  Отличие от оригинала: {idea.difference_from_original}",
+        *(f"  • {p}" for p in idea.key_points),
+        f"Shorts: {an.short_form_angle}",
+        f"Уверенность {an.confidence:.2f} · {an.model} · ${an.cost:.4f}",
+    ]
+    return "\n".join(lines)
+
+
+@app.command()
+def analyze(
+    video_id: str,
+    force: Annotated[bool, typer.Option("--force", help="Игнорировать кеш")] = False,
+) -> None:
+    """Анализ ролика LLM (кешируется: без изменения входа повторно не анализирует)."""
+    from radar.analyze.analyzer import AnalysisBudgetExceeded
+    from radar.llm.base import LLMError
+    from radar.youtube.client import QuotaExceededError
+    from radar.youtube.quota import QuotaDeferred
+
+    a = get_app()
+    try:
+        an = a.analyzer().analyze(video_id, current_time(), force=force)
+    except (ConfigError, LLMError, AnalysisBudgetExceeded, QuotaDeferred, QuotaExceededError) as e:
+        fail(str(e))
+        return
+    typer.echo(format_analysis(an))
 
 
 # --- квота и диагностика --------------------------------------------------------
