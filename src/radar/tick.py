@@ -111,7 +111,7 @@ def _score(app: App, now: datetime) -> TaskResult:
 
 
 def _analyze_due(app: App, now: datetime) -> bool:
-    return app.has_llm() and app.profile is not None and bool(app.analyzer().pending(now))
+    return app.has_llm() and app.profile is not None and app.analyzer().awaiting(now)
 
 
 def _analyze(app: App, now: datetime) -> TaskResult:
@@ -127,7 +127,7 @@ def _digest_due(app: App, now: datetime) -> bool:
         and app.profile is not None
         and app.db.list_outliers(min_score=app.config.analysis.score_threshold, limit=1)
     ):
-        analysis_pending = bool(app.analyzer().pending(now))
+        analysis_pending = app.analyzer().awaiting(now)
     return digest_due(app.db, app.config, now, analysis_pending=analysis_pending)
 
 

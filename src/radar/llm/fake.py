@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from collections.abc import Callable, Sequence
 
-from radar.schemas import ImageInput, LLMResponse
+from radar.schemas import BatchItemResult, ImageInput, LLMRequest, LLMResponse
 
 ANALYSIS_MARKER = "ANALYSIS_JSON"
 
@@ -73,3 +73,40 @@ class FakeLLM:
             output_tokens=len(text) // 4,
             cost=self.cost,
         )
+
+
+class FakeBatchLLM(FakeLLM):
+    """FakeLLM с Batch API: пакет «готов» после ready_after проверок статуса."""
+
+    def __init__(self, *args: object, ready_after: int = 0, **kwargs: object) -> None:
+        super().__init__(*args, **kwargs)  # type: ignore[arg-type]
+        self.ready_after = ready_after
+        self.batches: dict[str, list[LLMRequest]] = {}
+        self.checks: dict[str, int] = {}
+        self.fail_ids: set[str] = set()
+
+    def submit_batch(self, requests: Sequence[LLMRequest]) -> str:
+        batch_id = f"msgbatch_{len(self.batches) + 1}"
+        self.batches[batch_id] = list(requests)
+        self.checks[batch_id] = 0
+        return batch_id
+
+    def batch_ended(self, batch_id: str) -> bool:
+        self.checks[batch_id] += 1
+        return self.checks[batch_id] > self.ready_after
+
+    def batch_results(self, batch_id: str) -> list[BatchItemResult]:
+        out = []
+        for r in self.batches[batch_id]:
+            if r.custom_id in self.fail_ids:
+                out.append(BatchItemResult(custom_id=r.custom_id, error="batch: errored"))
+                continue
+            resp = self.complete(
+                system=r.system, prompt=r.prompt, images=r.images, max_tokens=r.max_tokens
+            )
+            out.append(
+                BatchItemResult(
+                    custom_id=r.custom_id, response=resp.model_copy(update={"cost": resp.cost / 2})
+                )
+            )
+        return out

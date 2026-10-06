@@ -39,7 +39,7 @@ make setup                 # зависимости + .env и config/*.yaml из
 | `radar doctor [--online]` | диагностика |
 
 ## Как это работает
-`watchlist` (uploads-плейлисты) → `snapshots` (videos.list по 50) → `score` (медиана/MAD по формату, ratio, robust z, velocity) → `analyze` (Claude: метаданные + превью + комментарии + ваш профиль) → `digest` (Telegram, кнопки «В темы», «Подробнее», «Скрыть канал», «Не то») → `trends` (еженедельно).
+`watchlist` (uploads-плейлисты) → `snapshots` (videos.list по 50) → `score` (медиана/MAD по формату, ratio, robust z, velocity) → `analyze` (Claude: метаданные + превью + комментарии + ваш профиль; опционально Batch API −50%) → `digest` (Telegram, кнопки «В темы», «Подробнее», «Скрыть канал», «Не то») → `trends` (еженедельно).
 
 Документация: `docs/architecture.md`, `docs/scoring.md`, `docs/quota.md`, `docs/runbook.md`, `docs/niches.md`, `docs/decisions/`. Статус разработки — `docs/STATUS.md`.
 

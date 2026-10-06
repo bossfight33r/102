@@ -119,6 +119,9 @@ class AnalysisConfig(_Cfg):
     comments_count: int = 20
     max_cost_usd_per_day: float = 1.0
     use_thumbnails: bool = True
+    use_batch: bool = False
+    batch_max_items: int = Field(default=20, ge=1, le=1000)
+    batch_timeout_hours: float = 25
 
 
 class LLMConfig(_Cfg):
@@ -129,6 +132,7 @@ class LLMConfig(_Cfg):
     output_usd_per_mtok: float = 20.0
     effort: str | None = "medium"
     refusal_fallback: bool = True
+    batch_discount: float = Field(default=0.5, ge=0, le=1, description="скидка Batch API")
 
 
 class DiscoveryConfig(_Cfg):

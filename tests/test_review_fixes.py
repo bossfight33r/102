@@ -64,14 +64,15 @@ def test_deleted_channel_not_refreshed_forever(app, fake_yt, now):
 def test_failed_migration_rolls_back(tmp_path, monkeypatch):
     path = tmp_path / "m.db"
     dbmod.Database(path).close()
+    bad = dbmod.SCHEMA_VERSION + 1
     monkeypatch.setattr(
-        dbmod, "_MIGRATIONS", [*dbmod._MIGRATIONS, (3, "CREATE TABLE x(a); SELECT nope();")]
+        dbmod, "_MIGRATIONS", [*dbmod._MIGRATIONS, (bad, "CREATE TABLE x(a); SELECT nope();")]
     )
-    monkeypatch.setattr(dbmod, "SCHEMA_VERSION", 3)
+    monkeypatch.setattr(dbmod, "SCHEMA_VERSION", bad)
     with pytest.raises(sqlite3.Error):
         dbmod.Database(path)
     conn = sqlite3.connect(path)
-    assert conn.execute("PRAGMA user_version").fetchone()[0] == 2
+    assert conn.execute("PRAGMA user_version").fetchone()[0] == bad - 1
     assert conn.execute("SELECT name FROM sqlite_master WHERE name='x'").fetchone() is None
 
 

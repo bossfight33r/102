@@ -7,7 +7,7 @@ import re
 from collections.abc import Sequence
 from typing import Any, Protocol
 
-from radar.schemas import ImageInput, LLMResponse
+from radar.schemas import BatchItemResult, ImageInput, LLMRequest, LLMResponse
 
 
 class LLMError(Exception):
@@ -36,6 +36,20 @@ class LLMProvider(Protocol):
     ) -> LLMResponse:
         """effort переопределяет llm.effort из конфига. Мышление модели расходует max_tokens."""
         ...
+
+
+class BatchLLMProvider(LLMProvider, Protocol):
+    """Провайдер с пакетной обработкой (Batch API: −50% стоимости, ответ до 24 ч)."""
+
+    def submit_batch(self, requests: Sequence[LLMRequest]) -> str: ...
+
+    def batch_ended(self, batch_id: str) -> bool: ...
+
+    def batch_results(self, batch_id: str) -> list[BatchItemResult]: ...
+
+
+def supports_batch(llm: object) -> bool:
+    return all(hasattr(llm, m) for m in ("submit_batch", "batch_ended", "batch_results"))
 
 
 _FENCE_RE = re.compile(r"```(?:json)?\s*(.*?)```", re.S)

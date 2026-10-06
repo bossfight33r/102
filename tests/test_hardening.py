@@ -6,7 +6,7 @@ from datetime import timedelta
 from radar.analyze.analyzer import Analyzer
 from radar.collect.snapshots import collect_snapshots, due_video_ids
 from radar.collect.watchlist import poll_watchlist
-from radar.db import _SCHEMA, Database
+from radar.db import _SCHEMA, SCHEMA_VERSION, Database
 from radar.digest.build import build_digest, digest_due, send_digest
 from radar.schemas import ChannelStatus, TaskResult
 from radar.score.outliers import score_all
@@ -30,11 +30,11 @@ def test_migration_v1_to_v2(tmp_path):
     conn.commit()
     conn.close()
     db = Database(path)
-    assert db.schema_version == 2 and db.get_kv("k") == "v"
+    assert db.schema_version == SCHEMA_VERSION and db.get_kv("k") == "v"
     cols = {r[1] for r in db.conn.execute("PRAGMA table_info(videos)")}
     assert "gone_at" in cols
     db.close()
-    assert Database(path).schema_version == 2  # повторное открытие — без ошибок
+    assert Database(path).schema_version == SCHEMA_VERSION  # повторное открытие — без ошибок
 
 
 def test_gone_videos_not_polled_again(app, fake_yt, now):

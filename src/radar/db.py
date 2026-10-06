@@ -28,7 +28,7 @@ from radar.schemas import (
 )
 from radar.timeutil import iso, parse_dt
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS niches (
@@ -156,6 +156,11 @@ CREATE TABLE IF NOT EXISTS alerts (
 _MIGRATIONS: list[tuple[int, str]] = [
     (1, _SCHEMA),
     (2, "ALTER TABLE videos ADD COLUMN gone_at TEXT;"),
+    (
+        3,
+        "CREATE TABLE IF NOT EXISTS llm_batches (id TEXT PRIMARY KEY, created_at TEXT NOT NULL, "
+        "items TEXT NOT NULL, closed_at TEXT, status TEXT NOT NULL DEFAULT 'open');",
+    ),
 ]
 assert _MIGRATIONS[-1][0] == SCHEMA_VERSION
 
@@ -584,6 +589,22 @@ class Database:
     def get_analysis(self, video_id: str) -> Analysis | None:
         row = self._one("SELECT data FROM analyses WHERE video_id=?", (video_id,))
         return Analysis.model_validate_json(row["data"]) if row else None
+
+    def add_llm_batch(self, batch_id: str, items: dict[str, str], at: datetime) -> None:
+        """items: custom_id (video_id) → input_hash на момент подачи."""
+        self.conn.execute(
+            "INSERT INTO llm_batches(id, created_at, items) VALUES (?,?,?)",
+            (batch_id, iso(at), _j(items)),
+        )
+
+    def open_llm_batches(self) -> list[tuple[str, datetime, dict[str, str]]]:
+        rows = self._all("SELECT * FROM llm_batches WHERE status='open' ORDER BY created_at")
+        return [(r["id"], parse_dt(r["created_at"]), json.loads(r["items"])) for r in rows]
+
+    def close_llm_batch(self, batch_id: str, at: datetime, status: str) -> None:
+        self.conn.execute(
+            "UPDATE llm_batches SET status=?, closed_at=? WHERE id=?", (status, iso(at), batch_id)
+        )
 
     def add_llm_usage(
         self,

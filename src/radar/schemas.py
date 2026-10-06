@@ -215,6 +215,23 @@ class LLMResponse(Model):
     cost: float = 0.0
 
 
+class LLMRequest(Model):
+    """Один запрос пакета (Batch API). custom_id — ^[A-Za-z0-9_-]{1,64}$."""
+
+    custom_id: str = Field(pattern=r"^[A-Za-z0-9_-]{1,64}$")
+    system: str
+    prompt: str
+    images: list[ImageInput] = Field(default_factory=list)
+    max_tokens: int = 4000
+    effort: str | None = None
+
+
+class BatchItemResult(Model):
+    custom_id: str
+    response: LLMResponse | None = None
+    error: str | None = None
+
+
 # --- квота -------------------------------------------------------------------
 
 

@@ -10,9 +10,9 @@
 - **Фаза 4 — Дайджест/бот/экспорт/tick**: дайджест по нишам, бот только для ADMIN_IDS, кнопки → Feedback, `topic_suggestions.yaml`, идемпотентный tick, launchd-plist для tick и бота.
 - **Фаза 5 — Тренды**: `radar trends`, `/trends`, еженедельный отчёт в бот, `content_hints.yaml`, рекомендации по порогам из «Не то» в `threshold_recommendations.yaml`.
 
-- **Доработки**: миграции БД, пропавшие видео, пустые плейлисты, дайджест ждёт анализ, алерты об ошибках tick, CI; лимиты LLM под мышление модели, темы в трендах, make-цели launchd, ротация логов, SessionStart-хук; исправления по ревью кода (доставка с лимитом попыток, атомарные миграции, учёт стоимости пустых ответов LLM); `/analyze <ссылка>`, `/add`, расход LLM в `/quota`, watchdog tick, `radar topics`; объяснение скоринга и спарклайн в «Подробнее», `/outliers <ниша>`, архив дайджестов, ежедневный бэкап БД, алерт о кандидатах, `radar quota --plan`, проверки конфига в doctor.
+- **Доработки**: миграции БД, пропавшие видео, пустые плейлисты, дайджест ждёт анализ, алерты об ошибках tick, CI; лимиты LLM под мышление модели, темы в трендах, make-цели launchd, ротация логов, SessionStart-хук; исправления по ревью кода (доставка с лимитом попыток, атомарные миграции, учёт стоимости пустых ответов LLM); `/analyze <ссылка>`, `/add`, расход LLM в `/quota`, watchdog tick, `radar topics`; объяснение скоринга и спарклайн в «Подробнее», `/outliers <ниша>`, архив дайджестов, ежедневный бэкап БД, алерт о кандидатах, `radar quota --plan`, проверки конфига в doctor; Batch API для анализа (`analysis.use_batch`, по умолчанию выкл.).
 
-Проверки: `make lint` — зелёный; `make test` — 143 тестов (Python 3.12 и 3.13; включая прогон tick через настоящий HTTP-клиент на MockTransport), зелёные, без сети (реальный HTTP в тестах запрещён фикстурой в `tests/conftest.py`).
+Проверки: `make lint` — зелёный; `make test` — 150 тестов (Python 3.12 и 3.13; включая прогон tick через настоящий HTTP-клиент на MockTransport), зелёные, без сети (реальный HTTP в тестах запрещён фикстурой в `tests/conftest.py`).
 
 ## Не готово
 - Нет функциональных пробелов по ТЗ. Не проверено на реальных API (см. ниже).
@@ -38,6 +38,8 @@ uv run radar trends --days 7 --llm
 launchctl print gui/$(id -u)/com.outlierradar.tick | grep -E "state|last exit"
 tail -n 50 data/logs/tick.err.log
 ```
+Batch API: `analysis.use_batch: true` в settings.yaml → `radar tick` (submitted=N) → через 15–60 мин `radar tick` (collected=N) → `radar quota` (расход LLM вдвое ниже).
+
 Что проверить глазами: серверный fallback Anthropic (`llm.refusal_fallback`) принимается выбранной моделью (если 400 — поставить `false`); `send_photo` по URL превью ytimg работает; цены `llm.*_usd_per_mtok` соответствуют модели.
 
 ## Следующий шаг

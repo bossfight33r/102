@@ -14,7 +14,7 @@ from radar.analyze.comments import comments_for_prompt, fetch_top_comments
 from radar.analyze.thumbnails import ThumbnailStore
 from radar.config import AppConfig
 from radar.db import Database
-from radar.llm.base import LLMError, LLMProvider, extract_json
+from radar.llm.base import LLMError, LLMProvider, extract_json, supports_batch
 from radar.log import get_logger
 from radar.schemas import (
     Analysis,
@@ -22,6 +22,7 @@ from radar.schemas import (
     ChannelProfile,
     ChannelStatus,
     ImageInput,
+    LLMRequest,
     LLMResponse,
     TaskResult,
     Video,
@@ -138,16 +139,14 @@ class Analyzer:
             "my_channel": self.profile.model_dump(mode="json"),
         }
 
-    def analyze(self, video_id: str, now: datetime, *, force: bool = False) -> Analysis:
-        video = self.db.get_video(video_id)
-        if video is None:
-            raise LLMError(f"видео {video_id} нет в БД (сначала radar poll)")
-        if not force and (hit := self.cached(video)):
-            return hit
+    def _check_budget(self, now: datetime) -> None:
         if self.spent_today(now) >= self.cfg.analysis.max_cost_usd_per_day:
             raise AnalysisBudgetExceeded(
                 f"лимит ${self.cfg.analysis.max_cost_usd_per_day:.2f}/сутки на LLM исчерпан"
             )
+
+    def prepare(self, video: Video, now: datetime) -> tuple[str, list[ImageInput]]:
+        """Промпт и картинка для LLM: тратит 1 ед. квоты на комментарии."""
         comments = fetch_top_comments(self.yt, video.id, self.cfg.analysis.comments_count, now)
         images: list[ImageInput] = []
         if self.cfg.analysis.use_thumbnails and self.thumbnails:
@@ -163,18 +162,34 @@ class Analyzer:
             )
             + ("\n\nПревью ролика приложено изображением." if images else "\n\nПревью недоступно.")
         )
-        draft, model, cost = self._ask(prompt, images, now, video.id)
+        return prompt, images
+
+    def _save(
+        self, video_id: str, draft: AnalysisDraft, model: str, cost: float, h: str, now: datetime
+    ) -> Analysis:
         analysis = Analysis(
             **draft.model_dump(),
-            video_id=video.id,
+            video_id=video_id,
             model=model,
             cost=round(cost, 6),
-            input_hash=input_hash(video, self.profile, self.llm.model, self.system),
+            input_hash=h,
             created_at=now,
         )
         self.db.save_analysis(analysis)
-        log.info("analysis_saved", video_id=video.id, cost=analysis.cost, model=model)
+        log.info("analysis_saved", video_id=video_id, cost=analysis.cost, model=model)
         return analysis
+
+    def analyze(self, video_id: str, now: datetime, *, force: bool = False) -> Analysis:
+        video = self.db.get_video(video_id)
+        if video is None:
+            raise LLMError(f"видео {video_id} нет в БД (сначала radar poll)")
+        if not force and (hit := self.cached(video)):
+            return hit
+        self._check_budget(now)
+        prompt, images = self.prepare(video, now)
+        draft, model, cost = self._ask(prompt, images, now, video.id)
+        h = input_hash(video, self.profile, self.llm.model, self.system)
+        return self._save(video.id, draft, model, cost, h, now)
 
     def _ask(
         self, prompt: str, images: list[ImageInput], now: datetime, video_id: str
@@ -221,11 +236,12 @@ class Analyzer:
     def pending(self, now: datetime) -> list[str]:
         """Аутлайеры выше порога анализа за последние 7 дней без актуального анализа."""
         out = []
+        flying = self.in_flight()
         watching = {c.id for c in self.db.list_channels(status=ChannelStatus.WATCHING)}
         for o in self.db.list_outliers(
             since=now - PENDING_WINDOW, min_score=self.cfg.analysis.score_threshold
         ):
-            if o.channel_id not in watching:  # скрытые каналы не тратят LLM
+            if o.channel_id not in watching or o.video_id in flying:  # скрытые — не тратят LLM
                 continue
             v = self.db.get_video(o.video_id)
             if v and self.cached(v) is None and not self._failed_recently(v.id, now):
@@ -236,7 +252,126 @@ class Analyzer:
         raw = self.db.get_kv(f"analysis_failed:{video_id}")
         return bool(raw) and now - parse_dt(raw) < FAILURE_BACKOFF  # type: ignore[arg-type]
 
+    def in_flight(self) -> set[str]:
+        return {vid for _, _, items in self.db.open_llm_batches() for vid in items}
+
+    def awaiting(self, now: datetime) -> bool:
+        """Есть что анализировать или ждём результаты пакета (для tick и ожидания дайджеста)."""
+        return bool(self.db.open_llm_batches()) or bool(self.pending(now))
+
     def analyze_pending(self, now: datetime) -> TaskResult:
+        if self.cfg.analysis.use_batch and supports_batch(self.llm):
+            return self._batch_tick(now)
+        if supports_batch(self.llm) and self.db.open_llm_batches():
+            self.collect_batches(now)  # пакеты, поданные до выключения use_batch
+        return self._sync_pending(now)
+
+    # --- Batch API -----------------------------------------------------------------
+
+    def _batch_tick(self, now: datetime) -> TaskResult:
+        collected, failed = self.collect_batches(now)
+        todo = self.pending(now)
+        stats: dict[str, int | float | str] = {
+            "collected": collected,
+            "failed": failed,
+            "submitted": 0,
+        }
+        if not todo:
+            stats["in_flight"] = len(self.in_flight())
+            return TaskResult(name="analyze", stats=stats)
+        try:
+            self._check_budget(now)
+        except AnalysisBudgetExceeded as e:
+            return TaskResult(name="analyze", stats=stats, deferred=True, message=str(e))
+        requests: list[LLMRequest] = []
+        hashes: dict[str, str] = {}
+        deferred_msg = ""
+        for vid in todo[: self.cfg.analysis.batch_max_items]:
+            video = self.db.get_video(vid)
+            if video is None:
+                continue
+            try:
+                prompt, images = self.prepare(video, now)
+            except (QuotaDeferred, QuotaExceededError) as e:
+                deferred_msg = str(e)
+                break
+            requests.append(
+                LLMRequest(
+                    custom_id=vid,
+                    system=self.system,
+                    prompt=prompt,
+                    images=images,
+                    max_tokens=self.cfg.llm.max_tokens,
+                )
+            )
+            hashes[vid] = input_hash(video, self.profile, self.llm.model, self.system)
+        if requests:
+            try:
+                batch_id = self.llm.submit_batch(requests)  # type: ignore[attr-defined]
+            except LLMError as e:
+                return TaskResult(name="analyze", stats=stats, deferred=True, message=str(e))
+            self.db.add_llm_batch(batch_id, hashes, now)
+            stats["submitted"] = len(requests)
+            log.info("analysis_batch_submitted", batch_id=batch_id, items=len(requests))
+        stats["in_flight"] = len(self.in_flight())
+        return TaskResult(
+            name="analyze", stats=stats, deferred=bool(deferred_msg), message=deferred_msg
+        )
+
+    def collect_batches(self, now: datetime) -> tuple[int, int]:
+        """Забрать готовые пакеты: валидные ответы → Analysis, остальные → бэкофф 24 ч."""
+        collected = failed = 0
+        timeout = timedelta(hours=self.cfg.analysis.batch_timeout_hours)
+        for batch_id, created, items in self.db.open_llm_batches():
+            expired = now - created > timeout
+            try:
+                ended = self.llm.batch_ended(batch_id)  # type: ignore[attr-defined]
+                results = self.llm.batch_results(batch_id) if ended else []  # type: ignore[attr-defined]
+            except LLMError as e:
+                log.warning("analysis_batch_check_failed", batch_id=batch_id, error=str(e)[:200])
+                if not expired:
+                    continue
+                ended, results = False, []
+            if not ended and not expired:
+                continue
+            seen: set[str] = set()
+            for r in results:
+                if r.custom_id not in items:
+                    continue
+                seen.add(r.custom_id)
+                if r.response:
+                    self._record_usage(r.response, r.custom_id, now)
+                draft = None
+                if r.response and not r.error:
+                    try:
+                        draft = AnalysisDraft.model_validate(extract_json(r.response.text))
+                    except (LLMError, ValidationError):
+                        draft = None
+                if draft and r.response:
+                    self._save(
+                        r.custom_id,
+                        draft,
+                        r.response.model,
+                        r.response.cost,
+                        items[r.custom_id],
+                        now,
+                    )
+                    collected += 1
+                else:
+                    self.db.set_kv(f"analysis_failed:{r.custom_id}", iso(now))
+                    failed += 1
+                    log.warning(
+                        "analysis_batch_item_failed",
+                        video_id=r.custom_id,
+                        error=(r.error or "invalid")[:200],
+                    )
+            for vid in set(items) - seen:  # пакет истёк или ответа нет
+                self.db.set_kv(f"analysis_failed:{vid}", iso(now))
+                failed += 1
+            self.db.close_llm_batch(batch_id, now, "ended" if ended else "expired")
+        return collected, failed
+
+    def _sync_pending(self, now: datetime) -> TaskResult:
         done = failed = 0
         todo = self.pending(now)
         for vid in todo[: self.cfg.analysis.max_per_tick]:

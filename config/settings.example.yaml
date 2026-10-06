@@ -44,6 +44,9 @@ analysis:
   comments_count: 20
   max_cost_usd_per_day: 1.0
   use_thumbnails: true
+  use_batch: false           # Batch API: −50% стоимости, результат обычно < 1 ч (до 24 ч)
+  batch_max_items: 20
+  batch_timeout_hours: 25
 
 llm:
   max_tokens: 16000         # для анализа; мышление модели тоже тратит этот лимит
@@ -52,7 +55,8 @@ llm:
   input_usd_per_mtok: 4.0    # цены модели из ANTHROPIC_MODEL, для учёта стоимости
   output_usd_per_mtok: 20.0
   effort: medium
-  refusal_fallback: true
+  refusal_fallback: true     # не действует в Batch API
+  batch_discount: 0.5
 
 discovery:
   auto_approve: false        # true — кандидаты сразу в watchlist

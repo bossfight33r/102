@@ -51,11 +51,14 @@ avoid: [лицо в кадре, реакции]             # чего не де
 | analysis.comments_count | 20 | топ комментариев |
 | analysis.max_cost_usd_per_day | 1.0 | дневной лимит расходов на LLM |
 | analysis.use_thumbnails | true | отправлять превью как изображение |
+| analysis.use_batch | false | анализ через Batch API (−50%, результат обычно < 1 ч) |
+| analysis.batch_max_items / batch_timeout_hours | 20 / 25 | размер пакета; пакет старше — считается проваленным |
 | llm.max_tokens | 16000 | лимит ответа анализа (включая мышление модели) |
 | llm.light_effort / light_max_tokens | low / 4000 | для вступления дайджеста и резюме трендов |
 | llm.input/output_usd_per_mtok | 4 / 20 | цены модели для учёта стоимости |
 | llm.effort | medium | output_config.effort (null — не передавать) |
-| llm.refusal_fallback | true | серверный fallback при отказе модели |
+| llm.refusal_fallback | true | серверный fallback при отказе модели (не в Batch API) |
+| llm.batch_discount | 0.5 | множитель стоимости пакетных запросов |
 | discovery.auto_approve | false | кандидаты сразу в watchlist |
 | discovery.published_within_days | 30 | publishedAfter для search.list |
 | discovery.max_results | 50 | результатов на запрос |
