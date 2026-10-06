@@ -91,13 +91,7 @@ def test_candidates_sorted_and_more(app, now):
     run_discovery(app.youtube, app.db, app.config, app.db.list_niches(), now)
     msgs = cmd_candidates(app, limit=2)
     assert "ещё 1" in msgs[0].text
-    subs = [
-        int(c.subs or 0)
-        for c in sorted(
-            app.db.list_channels(status=ChannelStatus.CANDIDATE), key=lambda c: -(c.subs or 0)
-        )
-    ]
-    assert "AI Practice" in msgs[1].text and subs[0] == 120_000 or subs[0] >= subs[1]
+    assert "Tech Guru" in msgs[1].text and "AI Practice" in msgs[2].text  # по убыванию подписчиков
 
 
 def test_cli_export_and_questions(cli_app, now):
