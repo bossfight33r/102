@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from radar.config import QuotaConfig
+from radar.config import AppConfig, QuotaConfig
 from radar.db import Database
 from radar.log import get_logger
 from radar.schemas import QuotaEntry
@@ -114,3 +114,61 @@ class QuotaPlanner:
             "paused_until": iso(until) if until else None,
             "breakdown": self.db.quota_breakdown(day),
         }
+
+
+def forecast_daily_units(db: Database, cfg: AppConfig, now: datetime) -> list[tuple[str, int, str]]:
+    """Прогноз расхода квоты в сутки при текущих каналах, видео и нишах: (задача, ед., расчёт)."""
+    import math
+    from datetime import timedelta
+
+    from radar.schemas import ChannelStatus
+
+    q = cfg.quota.costs
+    watching = len(db.list_channels(status=ChannelStatus.WATCHING))
+    polls = 24 * 60 / cfg.watchlist.interval_minutes
+    s = cfg.snapshots
+    tracked = db.videos_for_snapshots(now - timedelta(days=s.mid_days))
+    fresh = sum(1 for _, pub, _ in tracked if now - pub < timedelta(days=s.fresh_days))
+    mid = len(tracked) - fresh
+    niches = db.list_niches(enabled_only=True)
+    searches = sum(n.discovery_per_day for n in niches if n.seed_queries)
+    week_ago = now - timedelta(days=7)
+    analyses_per_day = (
+        len(db.list_outliers(since=week_ago, min_score=cfg.analysis.score_threshold)) / 7
+    )
+
+    rows = [
+        (
+            "watchlist",
+            round(watching * polls * q["playlistItems.list"]),
+            f"{watching} каналов × {polls:g} опросов",
+        ),
+        (
+            "подписчики",
+            math.ceil(watching / 50)
+            * round(24 / cfg.watchlist.channel_refresh_hours)
+            * q["channels.list"],
+            f"⌈{watching}/50⌉ × {24 / cfg.watchlist.channel_refresh_hours:g}",
+        ),
+        (
+            f"снимки <{s.fresh_days}д",
+            math.ceil(fresh / 50) * round(24 / s.fresh_interval_hours) * q["videos.list"],
+            f"⌈{fresh}/50⌉ × {24 / s.fresh_interval_hours:g}",
+        ),
+        (
+            f"снимки ≤{s.mid_days}д",
+            math.ceil(mid / 50) * round(24 / s.mid_interval_hours) * q["videos.list"],
+            f"⌈{mid}/50⌉ × {24 / s.mid_interval_hours:g}",
+        ),
+        (
+            "discovery",
+            searches * (q["search.list"] + q["channels.list"]),
+            f"{searches} search × {q['search.list']} + резолв каналов",
+        ),
+        (
+            "комментарии",
+            math.ceil(analyses_per_day) * q["commentThreads.list"],
+            f"~{analyses_per_day:.1f} анализов/сутки (среднее за 7 дней)",
+        ),
+    ]
+    return rows

@@ -6,7 +6,17 @@ import re
 from html import escape, unescape
 
 from radar.bot.keyboards import feedback_buttons
-from radar.schemas import Analysis, Digest, DigestItem, OutMessage, Video
+from radar.db import Database
+from radar.schemas import (
+    Analysis,
+    ChannelBaseline,
+    Digest,
+    DigestItem,
+    Outlier,
+    OutMessage,
+    Video,
+    VideoSnapshot,
+)
 
 FLAG_LABELS = {
     "high_ratio": "×медиана",
@@ -69,12 +79,73 @@ def render_digest(digest: Digest, intro: str | None = None) -> list[OutMessage]:
     return msgs
 
 
-def render_analysis(analysis: Analysis, video: Video | None) -> str:
+TELEGRAM_LIMIT = 4096
+SPARK = "▁▂▃▄▅▆▇█"
+
+
+def join_limited(lines: list[str], limit: int = TELEGRAM_LIMIT) -> str:
+    """Склейка целых строк в пределах limit: обрезка посреди HTML-тега ломает разбор в Telegram."""
+    out: list[str] = []
+    size = 0
+    for line in lines:
+        add = len(line) + (1 if out else 0)
+        if size + add > limit - 2:
+            out.append("…")
+            break
+        out.append(line)
+        size += add
+    return "\n".join(out)
+
+
+def sparkline(values: list[int], width: int = 16) -> str:
+    """Текстовый график прироста просмотров: ▁▂▃…█ по равномерной выборке точек."""
+    if len(values) < 2:
+        return ""
+    if len(values) > width:
+        step = (len(values) - 1) / (width - 1)
+        values = [values[round(i * step)] for i in range(width)]
+    lo, hi = min(values), max(values)
+    if hi == lo:
+        return SPARK[0] * len(values)
+    return "".join(SPARK[int((v - lo) / (hi - lo) * (len(SPARK) - 1))] for v in values)
+
+
+def render_metrics(
+    outlier: Outlier | None,
+    baseline: ChannelBaseline | None,
+    snapshots: list[VideoSnapshot],
+) -> list[str]:
+    """Почему ролик считается аутлайером: цифры скоринга и динамика."""
+    lines: list[str] = []
+    if outlier:
+        vel = f" · скорость ×{outlier.velocity_ratio:.1f}" if outlier.velocity_ratio else ""
+        lines.append(
+            f"📊 score <b>{outlier.score:.1f}</b> · ×{outlier.ratio:.1f} к медиане · z {outlier.z_score:.1f}{vel}"
+        )
+        flags = ", ".join(FLAG_LABELS.get(f, f) for f in outlier.reason_flags)
+        if flags:
+            lines.append(f"<i>{escape(flags)}</i>")
+    if baseline:
+        note = "" if baseline.reliable else ", мало данных"
+        lines.append(
+            f"Медиана канала ({baseline.format.value}): {human(round(baseline.median_views))} "
+            f"по {baseline.sample_size} видео{note}"
+        )
+    if len(snapshots) >= 2:
+        views = [s.views for s in snapshots]
+        lines.append(f"Просмотры: {sparkline(views)} {human(views[0])} → {human(views[-1])}")
+    return lines
+
+
+def render_analysis(
+    analysis: Analysis, video: Video | None, metrics: list[str] | None = None
+) -> str:
     w = analysis.why_it_worked
     idea = analysis.idea_for_my_channel
     title = escape(video.title) if video else analysis.video_id
     parts = [
         f"🔎 <b>{title}</b>",
+        *(metrics or []),
         "<b>Почему зашло</b>",
         f"• Заголовок: {escape(w.title_pattern)}",
         f"• Превью: {escape(', '.join(w.thumbnail_elements) or '—')}",
@@ -96,4 +167,41 @@ def render_analysis(analysis: Analysis, video: Video | None) -> str:
         f"<b>Shorts</b>: {escape(analysis.short_form_angle)}",
         f"<i>уверенность {analysis.confidence:.2f} · {escape(analysis.model)} · ${analysis.cost:.4f}</i>",
     ]
-    return "\n".join(parts)
+    return join_limited(parts)
+
+
+def render_digest_markdown(digest: Digest, intro: str | None, db: Database | None = None) -> str:
+    """Markdown-архив дайджеста: карточки + полный анализ (если есть)."""
+    out = [f"# Дайджест {digest.date.isoformat()}", ""]
+    if intro:
+        out += [intro, ""]
+    if not digest.items:
+        out.append("Новых аутлайеров нет.")
+    current = None
+    for i in digest.items:
+        if i.niche_name != current:
+            out += [f"## {i.niche_name}", ""]
+            current = i.niche_name
+        out += [
+            f"### [{i.title}]({i.url})",
+            f"{i.channel_title} · ×{i.ratio:.1f} · {human(i.views)} просм. · {i.age_days:g} дн. · "
+            f"{i.format.value} · score {i.score:.1f}",
+            "",
+        ]
+        analysis = db.get_analysis(i.video_id) if db else None
+        if analysis:
+            w, idea = analysis.why_it_worked, analysis.idea_for_my_channel
+            out += [
+                f"- **Почему зашло:** {w.title_pattern}; {w.topic}; {w.format}; {w.duration}",
+                f"- **Хук:** {analysis.hook_formula}",
+                f"- **Идея:** {idea.title} — {idea.pitch}",
+                f"- **Отличие от оригинала:** {idea.difference_from_original}",
+                *(f"  - {p}" for p in idea.key_points),
+                f"- **Shorts:** {analysis.short_form_angle}",
+            ]
+            if analysis.audience_questions:
+                out.append("- **Вопросы зрителей:** " + "; ".join(analysis.audience_questions))
+        elif i.why_short:
+            out.append(f"- {i.why_short}")
+        out.append("")
+    return "\n".join(out)

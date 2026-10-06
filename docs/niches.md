@@ -69,6 +69,7 @@ avoid: [лицо в кадре, реакции]             # чего не де
 | trends.days | 7 | окно трендов |
 | trends.weekly_weekday / weekly_hour | 0 / 10 | еженедельный отчёт (0 = пн, время по digest.timezone) |
 | bot.watchdog_minutes / watchdog_check_minutes | 60 / 10 | алерт из бота, если tick не запускался дольше N минут (0 — выкл) |
+| backup.enabled / keep | true / 7 | ежедневная копия БД в `data/backups/`, хранить N последних |
 | trends.use_llm | false | LLM-резюме трендов (prompts/trends.md) |
 
 ## .env — секреты

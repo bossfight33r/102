@@ -83,9 +83,18 @@ def _discovery_due(app: App, now: datetime) -> bool:
 def _discovery(app: App, now: datetime) -> TaskResult:
     from radar.collect.discovery import run_discovery
 
-    return run_discovery(
+    result = run_discovery(
         app.youtube, app.db, app.config, app.db.list_niches(enabled_only=True), now
     )
+    added = int(result.stats.get("added", 0))
+    if added:
+        where = (
+            "сразу в watchlist (auto_approve)"
+            if app.config.discovery.auto_approve
+            else "→ /candidates"
+        )
+        app.db.add_alert(f"🔎 Discovery: {added} новых каналов {where}", now)
+    return result
 
 
 def _score_due(app: App, now: datetime) -> bool:
@@ -132,6 +141,7 @@ def _digest(app: App, now: datetime) -> TaskResult:
         now,
         llm=app.llm if app.has_llm() else None,
         profile=app.profile,
+        archive_dir=app.settings.exports_dir / "digests",
     )
 
 
@@ -161,6 +171,18 @@ def _trends(app: App, now: datetime) -> TaskResult:
     return send_weekly_report(app, now)
 
 
+def _backup_due(app: App, now: datetime) -> bool:
+    from radar.backup import backup_due
+
+    return app.config.backup.enabled and backup_due(app.settings.backup_dir, now)
+
+
+def _backup(app: App, now: datetime) -> TaskResult:
+    from radar.backup import backup_db
+
+    return backup_db(app.db, app.settings.backup_dir, now, app.config.backup.keep)
+
+
 TASKS: list[Task] = [
     Task("seed_channels", _seed_due, _seed),
     Task("watchlist", _watchlist_due, _watchlist),
@@ -170,6 +192,7 @@ TASKS: list[Task] = [
     Task("analyze", _analyze_due, _analyze),
     Task("digest", _digest_due, _digest),
     Task("trends_weekly", _trends_due, _trends),
+    Task("backup", _backup_due, _backup),
     Task("alerts", _alerts_due, _alerts),
 ]
 

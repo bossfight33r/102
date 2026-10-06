@@ -48,6 +48,10 @@ class Settings(BaseSettings):
         return self.radar_data_dir / "exports"
 
     @property
+    def backup_dir(self) -> Path:
+        return self.radar_data_dir / "backups"
+
+    @property
     def cache_dir(self) -> Path:
         return self.radar_data_dir / "cache"
 
@@ -160,6 +164,11 @@ class BotConfig(_Cfg):
     watchdog_check_minutes: int = Field(default=10, ge=1)
 
 
+class BackupConfig(_Cfg):
+    enabled: bool = True
+    keep: int = Field(default=7, ge=1)
+
+
 class AppConfig(_Cfg):
     quota: QuotaConfig = Field(default_factory=QuotaConfig)
     snapshots: SnapshotConfig = Field(default_factory=SnapshotConfig)
@@ -172,6 +181,7 @@ class AppConfig(_Cfg):
     digest: DigestConfig = Field(default_factory=DigestConfig)
     trends: TrendsConfig = Field(default_factory=TrendsConfig)
     bot: BotConfig = Field(default_factory=BotConfig)
+    backup: BackupConfig = Field(default_factory=BackupConfig)
 
 
 def resolve_config_file(config_dir: Path, name: str) -> Path | None:

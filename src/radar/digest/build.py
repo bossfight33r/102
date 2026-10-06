@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from collections import defaultdict
 from datetime import date, datetime, timedelta
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from radar.bot.notifier import Notifier
@@ -174,8 +175,12 @@ def send_digest(
     *,
     llm: LLMProvider | None = None,
     profile: ChannelProfile | None = None,
+    archive_dir: Path | None = None,
 ) -> TaskResult:
-    """Собрать (если нужно) и отправить дайджест за локальную дату. Повторно не отправляет."""
+    """Собрать (если нужно) и отправить дайджест за локальную дату. Повторно не отправляет.
+
+    archive_dir — куда положить Markdown-копию отправленного дайджеста (YYYY-MM-DD.md).
+    """
     from radar.digest.render import render_digest
 
     # Неотправленный дайджест пересобирается: предпросмотр (/digest, radar digest) мог быть раньше анализа.
@@ -199,4 +204,11 @@ def send_digest(
             message="ни одно сообщение не доставлено",
         )
     db.save_digest(digest.model_copy(update={"sent_at": now}))
+    if archive_dir is not None:
+        from radar.digest.render import render_digest_markdown
+        from radar.export.suggestions import write_text
+
+        write_text(
+            archive_dir / f"{digest.date.isoformat()}.md", render_digest_markdown(digest, intro, db)
+        )
     return TaskResult(name="digest", stats={"items": len(digest.items), "sent": delivered})

@@ -14,10 +14,10 @@ from aiogram.types import CallbackQuery, Message, TelegramObject
 
 from radar.bot.keyboards import CODE_ACTIONS, candidate_buttons, parse_callback, to_markup
 from radar.digest.build import build_digest
-from radar.digest.render import human, render_analysis, render_digest
+from radar.digest.render import human, join_limited, render_analysis, render_digest, render_metrics
 from radar.export.suggestions import add_to_topics
 from radar.log import get_logger
-from radar.schemas import ChannelStatus, Feedback, FeedbackAction, OutMessage
+from radar.schemas import Analysis, ChannelStatus, Feedback, FeedbackAction, OutMessage
 
 if TYPE_CHECKING:
     from radar.app import App
@@ -69,13 +69,21 @@ def handle_feedback(
         analysis = app.db.get_analysis(video_id)
         if analysis is None:
             return "Анализа ещё нет", []
-        return "", [OutMessage(text=render_analysis(analysis, app.db.get_video(video_id)))]
+        return "", [OutMessage(text=details_text(app, video_id, analysis))]
     if action == FeedbackAction.HIDE_CHANNEL:
         video = app.db.get_video(video_id)
         if video:
             app.db.set_channel_status(video.channel_id, ChannelStatus.HIDDEN)
         return "🙈 Канал скрыт", []
     return "👎 Учтено", []
+
+
+def details_text(app: App, video_id: str, analysis: Analysis) -> str:
+    """Полный Analysis + цифры скоринга и спарклайн динамики."""
+    video = app.db.get_video(video_id)
+    baseline = app.db.get_baseline(video.channel_id, video.format) if video else None
+    metrics = render_metrics(app.db.get_outlier(video_id), baseline, app.db.snapshots_for(video_id))
+    return render_analysis(analysis, video, metrics)
 
 
 def handle_candidate(app: App, code: str, channel_id: str) -> str:
@@ -89,18 +97,26 @@ def cmd_digest(app: App, now: datetime) -> list[OutMessage]:
     return render_digest(build_digest(app.db, app.config, now))
 
 
-def cmd_outliers(app: App, now: datetime, limit: int = 10) -> str:
-    rows = app.db.list_outliers(since=now - timedelta(hours=48), limit=limit)
+def cmd_outliers(app: App, now: datetime, niche_id: str | None = None, limit: int = 10) -> str:
+    """Аутлайеры за 48 ч, опционально только одной ниши (/outliers ai-tools)."""
+    if niche_id and app.db.get_niche(niche_id) is None:
+        return f"Ниша {escape(niche_id)} не найдена (/niches)"
+    rows = app.db.list_outliers(since=now - timedelta(hours=48))
+    if niche_id:
+        in_niche = {c.id for c in app.db.list_channels(niche_id=niche_id)}
+        rows = [o for o in rows if o.channel_id in in_niche]
+    rows = rows[:limit]
+    where = f" · {escape(niche_id)}" if niche_id else ""
     if not rows:
-        return "Аутлайеров за 48 ч нет."
-    lines = ["<b>Аутлайеры за 48 ч</b>"]
+        return f"Аутлайеров за 48 ч нет{where}."
+    lines = [f"<b>Аутлайеры за 48 ч</b>{where}"]
     for o in rows:
         v = app.db.get_video(o.video_id)
         title = escape(v.title if v else o.video_id)
         lines.append(
             f'{o.score:.1f} · ×{o.ratio:.1f} · {human(o.views)} — <a href="https://youtu.be/{o.video_id}">{title}</a>'
         )
-    return "\n".join(lines)
+    return join_limited(lines)
 
 
 def cmd_niches(app: App) -> str:
@@ -175,7 +191,7 @@ def cmd_analyze(app: App, ref: str, now: datetime) -> list[OutMessage]:
         return [
             OutMessage(text=f"Не получилось: {escape(type(e).__name__)}: {escape(str(e))[:300]}")
         ]
-    return [OutMessage(text=render_analysis(analysis, video)[:4096])]
+    return [OutMessage(text=details_text(app, video.id, analysis))]
 
 
 def cmd_add_channel(app: App, args: str, now: datetime) -> str:
@@ -252,7 +268,7 @@ def _now() -> datetime:
 
 async def on_help(message: Message, app: App) -> None:
     await message.answer(
-        "Outlier Radar. Команды:\n/digest — дайджест за сегодня\n/outliers — аутлайеры за 48 ч\n"
+        "Outlier Radar. Команды:\n/digest — дайджест за сегодня\n/outliers [ниша] — аутлайеры за 48 ч\n"
         "/niches — ниши\n/candidates — одобрение каналов\n/quota — квота API и расход LLM\n/trends — тренды за неделю\n"
         "/analyze &lt;ссылка&gt; — разобрать любой ролик\n/add @канал [ниша] — в watchlist"
     )
@@ -262,8 +278,9 @@ async def on_digest(message: Message, app: App) -> None:
     await send_out(message, cmd_digest(app, _now()))
 
 
-async def on_outliers(message: Message, app: App) -> None:
-    await message.answer(cmd_outliers(app, _now()), disable_web_page_preview=True)
+async def on_outliers(message: Message, app: App, command: CommandObject) -> None:
+    niche = (command.args or "").strip() or None
+    await message.answer(cmd_outliers(app, _now(), niche), disable_web_page_preview=True)
 
 
 async def on_niches(message: Message, app: App) -> None:

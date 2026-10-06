@@ -26,6 +26,15 @@ def write_yaml(path: Path, data: Any) -> None:
     os.replace(tmp, path)
 
 
+def write_text(path: Path, text: str) -> None:
+    """Атомарная запись текстового файла."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(text)
+    os.replace(tmp, path)
+
+
 def suggestion_from_analysis(
     db: Database, video_id: str, profile: ChannelProfile | None
 ) -> TopicSuggestion | None:

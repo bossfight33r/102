@@ -18,7 +18,9 @@ def test_tick_full_pipeline_and_idempotent(app, fake_yt, fake_llm, notifier, now
     assert r1["watchlist"].stats["new_videos"] == 42
     assert r1["score"].stats["outliers"] == 2
     assert r1["analyze"].stats["done"] == 2
-    assert r1["digest"].stats["items"] == 2 and len(notifier.sent) == 3
+    assert r1["digest"].stats["items"] == 2 and len(notifier.sent) == 3 + 1  # + алерт о кандидатах
+    assert "новых каналов" in notifier.sent[-1].text
+    assert r1["backup"].stats["file"] == "radar-20261006.db"
     assert app.db.get_kv("last_tick_at") == now.isoformat()
 
     api_calls, llm_calls, sent = len(fake_yt.calls), len(fake_llm.calls), len(notifier.sent)

@@ -9,7 +9,7 @@ from typing import Annotated
 import typer
 
 from radar.app import App, ConfigError, current_time
-from radar.schemas import Analysis, ChannelStatus, FormatPref, Niche, TaskResult, VideoFormat
+from radar.schemas import ChannelStatus, FormatPref, Niche, TaskResult, VideoFormat
 
 app = typer.Typer(
     help="Outlier Radar: аутлайеры YouTube → идеи для моего канала.", no_args_is_help=True
@@ -251,24 +251,6 @@ def outliers(
 # --- анализ ---------------------------------------------------------------------
 
 
-def format_analysis(an: Analysis) -> str:
-    w = an.why_it_worked
-    idea = an.idea_for_my_channel
-    lines = [
-        f"Почему зашло: {w.title_pattern}; тема — {w.topic}; формат — {w.format}; длительность — {w.duration}",
-        f"Превью: {', '.join(w.thumbnail_elements) or '—'}",
-        f"Хук: {an.hook_formula}",
-        "Вопросы зрителей: " + ("; ".join(an.audience_questions) or "—"),
-        f"Идея для моего канала: {idea.title}",
-        f"  {idea.pitch}",
-        f"  Отличие от оригинала: {idea.difference_from_original}",
-        *(f"  • {p}" for p in idea.key_points),
-        f"Shorts: {an.short_form_angle}",
-        f"Уверенность {an.confidence:.2f} · {an.model} · ${an.cost:.4f}",
-    ]
-    return "\n".join(lines)
-
-
 @app.command()
 def analyze(
     video_id: str,
@@ -296,7 +278,10 @@ def analyze(
     ) as e:
         fail(str(e))
         return
-    typer.echo(format_analysis(an))
+    from radar.bot.handlers import details_text
+    from radar.digest.render import plain
+
+    typer.echo(plain(details_text(a, an.video_id, an)))
 
 
 # --- дайджест, tick, бот ----------------------------------------------------------
@@ -327,6 +312,7 @@ def digest(
                     now,
                     llm=a.llm if a.has_llm() else None,
                     profile=a.profile,
+                    archive_dir=a.settings.exports_dir / "digests",
                 )
             )
         except ConfigError as e:
@@ -397,9 +383,16 @@ def trends(
 
 
 @app.command()
-def quota() -> None:
+def quota(
+    plan: Annotated[
+        bool, typer.Option("--plan", help="Прогноз расхода в сутки при текущих настройках")
+    ] = False,
+) -> None:
     """Расход квоты YouTube API за текущие сутки (по тихоокеанскому времени)."""
     a = get_app()
+    if plan:
+        _quota_plan(a)
+        return
     st = a.planner.status(current_time())
     typer.echo(
         f"Квота {st['date']} (PT): {st['used']}/{st['budget']} ед., осталось {st['remaining']}; "
@@ -412,6 +405,35 @@ def quota() -> None:
     from radar.bot.handlers import llm_spend_line
 
     typer.echo(llm_spend_line(a, current_time()))
+
+
+def _quota_plan(a: App) -> None:
+    from radar.youtube.quota import forecast_daily_units
+
+    rows = forecast_daily_units(a.db, a.config, current_time())
+    total = sum(u for _, u, _ in rows)
+    qc = a.config.quota
+    typer.echo("Прогноз квоты в сутки:")
+    for name, units, note in rows:
+        typer.echo(f"  {name:<14} {units:>6} ед.  {note}")
+    typer.echo(f"  {'ИТОГО':<14} {total:>6} ед. из {qc.daily_budget}")
+    if total > qc.daily_budget - qc.safety_margin:
+        typer.echo(
+            "⚠️  Не помещается: поднимите watchlist.interval_minutes или снизьте discovery_per_day."
+        )
+    elif total > qc.daily_budget * 0.8:
+        typer.echo("⚠️  Больше 80% бюджета — запаса мало.")
+    else:
+        typer.echo("✅ Помещается с запасом.")
+
+
+@app.command()
+def backup() -> None:
+    """Копия БД сейчас в data/backups/ (tick делает это раз в сутки)."""
+    from radar.backup import backup_db
+
+    a = get_app()
+    _print_result(backup_db(a.db, a.settings.backup_dir, current_time(), a.config.backup.keep))
 
 
 @app.command()
@@ -476,6 +498,19 @@ def doctor(
             line(not path.name.endswith(".example.yaml") or None, f"config: {path}")
     niches = a.db.list_niches()
     line(bool(niches) or None, f"Ниш: {len(niches)} (включено {sum(n.enabled for n in niches)})")
+    for n in niches:
+        if n.enabled and not n.seed_queries and not n.seed_channels:
+            line(None, f"Ниша {n.id}: нет ни seed_queries, ни seed_channels — собирать нечего")
+    try:
+        from zoneinfo import ZoneInfo
+
+        ZoneInfo(a.config.digest.timezone)
+        line(True, f"Дайджест: {a.config.digest.send_hour}:00 {a.config.digest.timezone}")
+    except Exception:
+        problems += 1
+        line(False, f"digest.timezone «{a.config.digest.timezone}» — неизвестная таймзона")
+    if secret_state(s.telegram_bot_token) and not s.admin_ids:
+        line(None, "TELEGRAM_BOT_TOKEN задан, но ADMIN_IDS пуст — бот никому не ответит")
     line(a.profile is not None or None, "Профиль канала: " + ("загружен" if a.profile else "нет"))
 
     try:

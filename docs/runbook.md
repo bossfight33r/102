@@ -61,12 +61,14 @@ plist запускает `zsh -lc`, чтобы подхватить PATH с `uv`
 | бот молчит | ваш id не в `ADMIN_IDS` (чужим бот не отвечает), процесс не запущен (`launchctl print …bot`) |
 | `radar tick уже выполняется` | предыдущий tick ещё идёт; если завис — `ps aux | grep radar` |
 | дайджест не пришёл | `radar digest` — собран ли, `sent_at`; `radar doctor` — токен и ADMIN_IDS; логи `tick.err.log` |
+| квота кончается к вечеру | `radar quota --plan` — прогноз по задачам; поднимите `watchlist.interval_minutes` |
 | аутлайеров нет | мало истории: базлайну нужны видео старше 7 дней (`radar channel list`, `radar outliers --days 30`) |
 
 ## Бот
 Команды: `/digest`, `/outliers`, `/niches`, `/candidates`, `/quota` (квота + расход LLM), `/trends`, `/analyze <ссылка>` (любой ролик, 1–2 ед. квоты + LLM), `/add @канал [ниша]`. Watchdog внутри бота присылает алерт, если `radar tick` не запускался дольше `bot.watchdog_minutes` (Мак спал, launchd выгружен) — по одному на каждый простой.
 
 ## Данные
-- БД: `data/radar.db` (SQLite, WAL). Бэкап: `sqlite3 data/radar.db ".backup data/backup.db"`.
+- БД: `data/radar.db` (SQLite, WAL). Бэкап — автоматически раз в сутки в `data/backups/radar-YYYYMMDD.db` (7 последних), вручную `radar backup`. Восстановление: остановить tick и бота (`make launchd-uninstall`), `cp data/backups/radar-…db data/radar.db`, `make launchd-install`.
+- Архив отправленных дайджестов: `data/exports/digests/YYYY-MM-DD.md` (с полным анализом).
 - Экспорт: `data/exports/topic_suggestions.yaml`, `content_hints.yaml`, `threshold_recommendations.yaml`.
 - Кеш превью: `data/cache/thumbs` (можно удалить).

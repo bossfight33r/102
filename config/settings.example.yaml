@@ -81,3 +81,7 @@ trends:
 bot:
   watchdog_minutes: 60       # tick не запускался дольше — алерт из процесса бота (0 — выкл)
   watchdog_check_minutes: 10
+
+backup:
+  enabled: true              # ежедневная копия data/radar.db в data/backups/
+  keep: 7

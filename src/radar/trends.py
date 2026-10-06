@@ -20,6 +20,7 @@ from radar.bot.notifier import TEXT_LIMIT as TELEGRAM_TEXT_LIMIT
 from radar.config import AppConfig
 from radar.db import Database
 from radar.delivery import give_up_delivery
+from radar.digest.render import join_limited
 from radar.export.suggestions import HINTS_FILE, write_yaml
 from radar.log import get_logger
 from radar.schemas import (
@@ -224,20 +225,6 @@ def growing(nt: NicheTrends) -> list[TrendFeature]:
     return [f for f in nt.features if f.lift >= MIN_LIFT and f.n_outliers >= MIN_FEATURE_OUTLIERS]
 
 
-def _join_limited(lines: list[str], limit: int) -> str:
-    """Склейка целых строк в пределах limit: обрезка посреди HTML-тега ломает разбор в Telegram."""
-    out: list[str] = []
-    size = 0
-    for line in lines:
-        add = len(line) + (1 if out else 0)
-        if size + add > limit - 2:
-            out.append("…")
-            break
-        out.append(line)
-        size += add
-    return "\n".join(out)
-
-
 def render_trends_text(
     report: TrendReport, summary: str | None = None, limit: int = TELEGRAM_TEXT_LIMIT
 ) -> str:
@@ -271,7 +258,7 @@ def render_trends_text(
                     f"{escape(f.name)} ×{f.lift:.1f} ({f.n_outliers}/{nt.n_outliers}){delta}"
                 )
             lines.append(f"  {CATEGORY_NAMES[cat]}: " + "; ".join(parts))
-    return _join_limited(lines, limit)
+    return join_limited(lines, limit)
 
 
 def content_hints(report: TrendReport) -> dict[str, object]:
@@ -435,7 +422,7 @@ def render_recommendations(recs: list[ThresholdRecommendation]) -> str:
     lines += [
         f"• {escape(r.param)}: {r.current} → {r.suggested} — {escape(r.reason)}" for r in recs
     ]
-    return _join_limited(lines, 4096)
+    return join_limited(lines, 4096)
 
 
 # --- еженедельный отчёт ----------------------------------------------------------------
