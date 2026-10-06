@@ -74,3 +74,73 @@ def write_topic_suggestions(db: Database, exports_dir: Path) -> Path:
     path = exports_dir / TOPICS_FILE
     write_yaml(path, {"topics": [t.model_dump(mode="json") for t in db.list_topic_suggestions()]})
     return path
+
+
+CSV_COLUMNS = [
+    "detected_at",
+    "niche",
+    "channel",
+    "subs",
+    "title",
+    "url",
+    "format",
+    "duration_sec",
+    "published_at",
+    "views",
+    "ratio",
+    "z_score",
+    "velocity_ratio",
+    "score",
+    "flags",
+    "title_pattern",
+    "topic",
+    "hook",
+    "idea",
+    "difference",
+    "short_form_angle",
+]
+
+
+def export_outliers_csv(db: Database, path: Path, since: datetime) -> int:
+    """Аутлайеры с анализом в CSV (UTF-8 с BOM — корректно открывается в Excel/Numbers)."""
+    import csv
+    import io
+
+    buf = io.StringIO()
+    writer = csv.DictWriter(buf, fieldnames=CSV_COLUMNS)
+    writer.writeheader()
+    rows = 0
+    for o in db.list_outliers(since=since):
+        video, channel, a = (
+            db.get_video(o.video_id),
+            db.get_channel(o.channel_id),
+            db.get_analysis(o.video_id),
+        )
+        writer.writerow(
+            {
+                "detected_at": o.detected_at.isoformat(),
+                "niche": ",".join(channel.niche_ids) if channel else "",
+                "channel": channel.title if channel else o.channel_id,
+                "subs": channel.subs if channel else "",
+                "title": video.title if video else "",
+                "url": f"https://youtu.be/{o.video_id}",
+                "format": o.format.value,
+                "duration_sec": video.duration_sec if video else "",
+                "published_at": video.published_at.isoformat() if video else "",
+                "views": o.views,
+                "ratio": o.ratio,
+                "z_score": o.z_score,
+                "velocity_ratio": o.velocity_ratio if o.velocity_ratio is not None else "",
+                "score": o.score,
+                "flags": ",".join(o.reason_flags),
+                "title_pattern": a.why_it_worked.title_pattern if a else "",
+                "topic": a.why_it_worked.topic if a else "",
+                "hook": a.hook_formula if a else "",
+                "idea": a.idea_for_my_channel.title if a else "",
+                "difference": a.idea_for_my_channel.difference_from_original if a else "",
+                "short_form_angle": a.short_form_angle if a else "",
+            }
+        )
+        rows += 1
+    write_text(path, "﻿" + buf.getvalue())
+    return rows

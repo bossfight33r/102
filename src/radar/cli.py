@@ -437,6 +437,36 @@ def backup() -> None:
 
 
 @app.command()
+def export(
+    days: Annotated[int, typer.Option("--days", help="Аутлайеры, обнаруженные за N дней")] = 30,
+    out: Annotated[str | None, typer.Option("--out", help="Путь к CSV")] = None,
+) -> None:
+    """Аутлайеры с анализом в CSV (по умолчанию data/exports/outliers.csv)."""
+    from datetime import timedelta
+    from pathlib import Path
+
+    from radar.export.suggestions import export_outliers_csv
+
+    a = get_app()
+    path = Path(out) if out else a.settings.exports_dir / "outliers.csv"
+    n = export_outliers_csv(a.db, path, current_time() - timedelta(days=days))
+    typer.echo(f"{n} аутлайеров → {path}")
+
+
+@app.command()
+def questions(days: Annotated[int, typer.Option("--days")] = 7) -> None:
+    """Вопросы зрителей из анализов по нишам (+ data/exports/audience_questions.yaml)."""
+    from radar.digest.render import plain
+    from radar.trends import audience_questions, render_questions, write_audience_questions
+
+    a = get_app()
+    now = current_time()
+    qs = audience_questions(a.db, now, days)
+    write_audience_questions(qs, a.settings.exports_dir, now)
+    typer.echo(plain(render_questions(a.db, qs, per_niche=50)))
+
+
+@app.command()
 def topics() -> None:
     """Темы, отмеченные кнопкой «В темы» (data/exports/topic_suggestions.yaml)."""
     a = get_app()

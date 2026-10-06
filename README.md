@@ -30,12 +30,14 @@ make setup                 # зависимости + .env и config/*.yaml из
 | `radar outliers [--niche ID] [--format short\|long] [--days N]` | список аутлайеров |
 | `radar analyze VIDEO_ID\|ссылка [--force]` | разбор LLM любого ролика (кешируется) |
 | `radar topics` | темы, отмеченные «В темы» |
+| `radar questions [--days 7]` | вопросы зрителей по нишам — источник тем |
+| `radar export [--days 30] [--out файл.csv]` | аутлайеры с анализом в CSV |
 | `radar digest [--send] [--rebuild]` | дайджест за сегодня / отправка в Telegram |
 | `radar trends [--days 7] [--llm]` | растущие паттерны + `content_hints.yaml` + рекомендации по порогам |
 | `radar quota [--plan]` | расход квоты YouTube и LLM; `--plan` — прогноз расхода в сутки при текущих настройках |
 | `radar backup` | копия БД в `data/backups/` (tick делает раз в сутки) |
 | `radar tick` | все задачи с наступившим сроком (для launchd) |
-| `radar bot` | Telegram-бот: /digest /outliers /niches /candidates /quota /trends /analyze &lt;ссылка&gt; /add @канал; watchdog алертит, если tick встал |
+| `radar bot` | Telegram-бот: /digest /outliers /niches /candidates /quota /trends /questions /analyze &lt;ссылка&gt; /add @канал; watchdog алертит, если tick встал |
 | `radar doctor [--online]` | диагностика |
 
 ## Как это работает

@@ -137,16 +137,20 @@ def cmd_niches(app: App) -> str:
 
 
 def cmd_candidates(app: App, limit: int = 10) -> list[OutMessage]:
-    cands = app.db.list_channels(status=ChannelStatus.CANDIDATE)
+    cands = sorted(
+        app.db.list_channels(status=ChannelStatus.CANDIDATE), key=lambda c: -(c.subs or 0)
+    )
     if not cands:
         return [OutMessage(text="Кандидатов нет.")]
-    msgs = [OutMessage(text=f"Кандидатов: {len(cands)} (показываю {min(limit, len(cands))})")]
+    more = f", ещё {len(cands) - limit} — после решения по этим" if len(cands) > limit else ""
+    msgs = [OutMessage(text=f"Кандидатов: {len(cands)}{more}")]
     for c in cands[:limit]:
         handle = f" {escape(c.handle)}" if c.handle else ""
+        niches = ", ".join(c.niche_ids) or "—"
         msgs.append(
             OutMessage(
-                text=f"<b>{escape(c.title)}</b>{handle}\nподписчиков: {human(c.subs or 0)}\n"
-                f"https://www.youtube.com/channel/{c.id}",
+                text=f"<b>{escape(c.title)}</b>{handle}\nподписчиков: {human(c.subs or 0)} · ниши: "
+                f"{escape(niches)}\nhttps://www.youtube.com/channel/{c.id}",
                 buttons=candidate_buttons(c.id),
             )
         )
@@ -239,6 +243,12 @@ def stale_tick_alert(app: App, now: datetime) -> str | None:
     )
 
 
+def cmd_questions(app: App, now: datetime) -> str:
+    from radar.trends import audience_questions, render_questions
+
+    return render_questions(app.db, audience_questions(app.db, now, app.config.trends.days))
+
+
 def cmd_trends(app: App, now: datetime) -> str:
     from radar.trends import build_trends, render_trends_text
 
@@ -269,7 +279,7 @@ def _now() -> datetime:
 async def on_help(message: Message, app: App) -> None:
     await message.answer(
         "Outlier Radar. Команды:\n/digest — дайджест за сегодня\n/outliers [ниша] — аутлайеры за 48 ч\n"
-        "/niches — ниши\n/candidates — одобрение каналов\n/quota — квота API и расход LLM\n/trends — тренды за неделю\n"
+        "/niches — ниши\n/candidates — одобрение каналов\n/quota — квота API и расход LLM\n/trends — тренды за неделю\n/questions — вопросы зрителей за неделю\n"
         "/analyze &lt;ссылка&gt; — разобрать любой ролик\n/add @канал [ниша] — в watchlist"
     )
 
@@ -297,6 +307,10 @@ async def on_quota(message: Message, app: App) -> None:
 
 async def on_trends(message: Message, app: App) -> None:
     await message.answer(cmd_trends(app, _now()))
+
+
+async def on_questions(message: Message, app: App) -> None:
+    await message.answer(cmd_questions(app, _now()))
 
 
 async def on_analyze(message: Message, app: App, command: CommandObject) -> None:
@@ -340,6 +354,7 @@ def build_router() -> Router:
     r.message.register(on_quota, Command("quota"))
     r.message.register(on_trends, Command("trends"))
     r.message.register(on_analyze, Command("analyze"))
+    r.message.register(on_questions, Command("questions"))
     r.message.register(on_add, Command("add"))
     r.callback_query.register(on_feedback, F.data.startswith("fb:"))
     r.callback_query.register(on_candidate, F.data.startswith("ch:"))

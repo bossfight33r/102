@@ -482,6 +482,7 @@ def run_trends(
     write_content_hints(report, app.settings.exports_dir)
     recs = threshold_recommendations(app.db, app.config)
     write_recommendations(recs, app.settings.exports_dir, now)
+    write_audience_questions(audience_questions(app.db, now, days), app.settings.exports_dir, now)
     summary = llm_summary(app, report, now) if with_llm and app.has_llm() else None
     return report, recs, summary
 
@@ -491,6 +492,9 @@ def send_weekly_report(app: App, now: datetime) -> TaskResult:
         app, now, app.config.trends.days, with_llm=app.config.trends.use_llm
     )
     msgs = [OutMessage(text=render_trends_text(report, summary))]
+    questions = audience_questions(app.db, now, app.config.trends.days)
+    if questions:
+        msgs.append(OutMessage(text=render_questions(app.db, questions)))
     if recs:
         msgs.append(OutMessage(text=render_recommendations(recs)))
     sent = app.notifier.send(msgs)
@@ -507,3 +511,59 @@ def send_weekly_report(app: App, now: datetime) -> TaskResult:
         name="trends_weekly",
         stats={"niches": len(report.niches), "recommendations": len(recs), "sent": sent},
     )
+
+
+# --- вопросы зрителей ---------------------------------------------------------------
+
+QUESTIONS_FILE = "audience_questions.yaml"
+
+
+def audience_questions(db: Database, now: datetime, days: int) -> dict[str, list[dict[str, str]]]:
+    """Вопросы зрителей из анализов за период, по нишам, без дублей. Источник будущих тем."""
+    since = now - timedelta(days=days)
+    niches = {n.id: n for n in db.list_niches(enabled_only=True)}
+    out: dict[str, list[dict[str, str]]] = {nid: [] for nid in niches}
+    seen: dict[str, set[str]] = {nid: set() for nid in niches}
+    for o in db.list_outliers(since=since - timedelta(days=7)):
+        analysis = db.get_analysis(o.video_id)
+        if analysis is None or analysis.created_at < since:
+            continue
+        channel = db.get_channel(o.channel_id)
+        video = db.get_video(o.video_id)
+        for nid in channel.niche_ids if channel else []:
+            if nid not in niches:
+                continue
+            for q in analysis.audience_questions:
+                key = re.sub(r"\W+", " ", q.lower()).strip()
+                if not key or key in seen[nid]:
+                    continue
+                seen[nid].add(key)
+                out[nid].append(
+                    {
+                        "question": q,
+                        "video_id": o.video_id,
+                        "video_title": video.title if video else "",
+                    }
+                )
+    return {nid: qs for nid, qs in out.items() if qs}
+
+
+def write_audience_questions(
+    qs: dict[str, list[dict[str, str]]], exports_dir: Path, now: datetime
+) -> Path:
+    path = exports_dir / QUESTIONS_FILE
+    write_yaml(path, {"generated_at": iso(now), "niches": qs})
+    return path
+
+
+def render_questions(db: Database, qs: dict[str, list[dict[str, str]]], per_niche: int = 8) -> str:
+    if not qs:
+        return "Вопросов зрителей за период нет (появятся после анализа аутлайеров)."
+    lines = ["❓ <b>Вопросы зрителей</b> — темы для будущих роликов"]
+    for nid, items in qs.items():
+        niche = db.get_niche(nid)
+        lines.append(f"\n<b>{escape(niche.name if niche else nid)}</b>")
+        lines += [f"• {escape(i['question'])}" for i in items[:per_niche]]
+        if len(items) > per_niche:
+            lines.append(f"  …и ещё {len(items) - per_niche} в audience_questions.yaml")
+    return join_limited(lines)

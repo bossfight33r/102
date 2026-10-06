@@ -65,10 +65,11 @@ plist запускает `zsh -lc`, чтобы подхватить PATH с `uv`
 | аутлайеров нет | мало истории: базлайну нужны видео старше 7 дней (`radar channel list`, `radar outliers --days 30`) |
 
 ## Бот
-Команды: `/digest`, `/outliers`, `/niches`, `/candidates`, `/quota` (квота + расход LLM), `/trends`, `/analyze <ссылка>` (любой ролик, 1–2 ед. квоты + LLM), `/add @канал [ниша]`. Watchdog внутри бота присылает алерт, если `radar tick` не запускался дольше `bot.watchdog_minutes` (Мак спал, launchd выгружен) — по одному на каждый простой.
+Команды: `/digest`, `/outliers`, `/niches`, `/candidates`, `/quota` (квота + расход LLM), `/trends`, `/questions` (вопросы зрителей за неделю), `/analyze <ссылка>` (любой ролик, 1–2 ед. квоты + LLM), `/add @канал [ниша]`. Watchdog внутри бота присылает алерт, если `radar tick` не запускался дольше `bot.watchdog_minutes` (Мак спал, launchd выгружен) — по одному на каждый простой.
 
 ## Данные
 - БД: `data/radar.db` (SQLite, WAL). Бэкап — автоматически раз в сутки в `data/backups/radar-YYYYMMDD.db` (7 последних), вручную `radar backup`. Восстановление: остановить tick и бота (`make launchd-uninstall`), `cp data/backups/radar-…db data/radar.db`, `make launchd-install`.
+- Вопросы зрителей: `data/exports/audience_questions.yaml`; аутлайеры в CSV: `radar export` → `data/exports/outliers.csv`.
 - Архив отправленных дайджестов: `data/exports/digests/YYYY-MM-DD.md` (с полным анализом).
 - Экспорт: `data/exports/topic_suggestions.yaml`, `content_hints.yaml`, `threshold_recommendations.yaml`.
 - Кеш превью: `data/cache/thumbs` (можно удалить).
