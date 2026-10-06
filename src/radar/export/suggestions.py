@@ -101,6 +101,16 @@ CSV_COLUMNS = [
 ]
 
 
+_FORMULA_START = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _csv_safe(value: object) -> object:
+    """Чужой текст (заголовки, ответы LLM) не должен исполняться формулой в Excel/Numbers."""
+    if isinstance(value, str) and value.startswith(_FORMULA_START):
+        return "'" + value
+    return value
+
+
 def export_outliers_csv(db: Database, path: Path, since: datetime) -> int:
     """Аутлайеры с анализом в CSV (UTF-8 с BOM — корректно открывается в Excel/Numbers)."""
     import csv
@@ -116,31 +126,30 @@ def export_outliers_csv(db: Database, path: Path, since: datetime) -> int:
             db.get_channel(o.channel_id),
             db.get_analysis(o.video_id),
         )
-        writer.writerow(
-            {
-                "detected_at": o.detected_at.isoformat(),
-                "niche": ",".join(channel.niche_ids) if channel else "",
-                "channel": channel.title if channel else o.channel_id,
-                "subs": channel.subs if channel else "",
-                "title": video.title if video else "",
-                "url": f"https://youtu.be/{o.video_id}",
-                "format": o.format.value,
-                "duration_sec": video.duration_sec if video else "",
-                "published_at": video.published_at.isoformat() if video else "",
-                "views": o.views,
-                "ratio": o.ratio,
-                "z_score": o.z_score,
-                "velocity_ratio": o.velocity_ratio if o.velocity_ratio is not None else "",
-                "score": o.score,
-                "flags": ",".join(o.reason_flags),
-                "title_pattern": a.why_it_worked.title_pattern if a else "",
-                "topic": a.why_it_worked.topic if a else "",
-                "hook": a.hook_formula if a else "",
-                "idea": a.idea_for_my_channel.title if a else "",
-                "difference": a.idea_for_my_channel.difference_from_original if a else "",
-                "short_form_angle": a.short_form_angle if a else "",
-            }
-        )
+        row: dict[str, object] = {
+            "detected_at": o.detected_at.isoformat(),
+            "niche": ",".join(channel.niche_ids) if channel else "",
+            "channel": channel.title if channel else o.channel_id,
+            "subs": channel.subs if channel else "",
+            "title": video.title if video else "",
+            "url": f"https://youtu.be/{o.video_id}",
+            "format": o.format.value,
+            "duration_sec": video.duration_sec if video else "",
+            "published_at": video.published_at.isoformat() if video else "",
+            "views": o.views,
+            "ratio": o.ratio,
+            "z_score": o.z_score,
+            "velocity_ratio": o.velocity_ratio if o.velocity_ratio is not None else "",
+            "score": o.score,
+            "flags": ",".join(o.reason_flags),
+            "title_pattern": a.why_it_worked.title_pattern if a else "",
+            "topic": a.why_it_worked.topic if a else "",
+            "hook": a.hook_formula if a else "",
+            "idea": a.idea_for_my_channel.title if a else "",
+            "difference": a.idea_for_my_channel.difference_from_original if a else "",
+            "short_form_angle": a.short_form_angle if a else "",
+        }
+        writer.writerow({k: _csv_safe(v) for k, v in row.items()})
         rows += 1
     write_text(path, "﻿" + buf.getvalue())
     return rows

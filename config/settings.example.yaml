@@ -47,6 +47,7 @@ analysis:
   use_batch: false           # Batch API: −50% стоимости, результат обычно < 1 ч (до 24 ч)
   batch_max_items: 20
   batch_timeout_hours: 25
+  batch_cost_estimate_usd: 0.05  # оценка стоимости анализа для бюджета, пока нет истории
 
 llm:
   max_tokens: 16000         # для анализа; мышление модели тоже тратит этот лимит

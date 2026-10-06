@@ -288,14 +288,26 @@ class Analyzer:
         if not todo:
             stats["in_flight"] = len(self.in_flight())
             return TaskResult(name="analyze", stats=stats)
-        try:
-            self._check_budget(now)
-        except AnalysisBudgetExceeded as e:
-            return TaskResult(name="analyze", stats=stats, deferred=True, message=str(e))
+        # Бюджет: уже потрачено + ожидаемая стоимость пакетов в полёте + новые элементы.
+        est = self.estimated_cost_per_analysis(now)
+        room = (
+            self.cfg.analysis.max_cost_usd_per_day
+            - self.spent_today(now)
+            - len(self.in_flight()) * est
+        )
+        allowed = min(self.cfg.analysis.batch_max_items, int(room // est) if est > 0 else 0)
+        if allowed <= 0:
+            return TaskResult(
+                name="analyze",
+                stats=stats,
+                deferred=True,
+                message=f"лимит ${self.cfg.analysis.max_cost_usd_per_day:.2f}/сутки на LLM "
+                f"(с учётом пакетов в полёте, ~${est:.3f} за анализ)",
+            )
         requests: list[LLMRequest] = []
         hashes: dict[str, str] = {}
         deferred_msg = ""
-        for vid in todo[: self.cfg.analysis.batch_max_items]:
+        for vid in todo[:allowed]:
             video = self.db.get_video(vid)
             if video is None:
                 continue
@@ -327,6 +339,11 @@ class Analyzer:
             name="analyze", stats=stats, deferred=bool(deferred_msg), message=deferred_msg
         )
 
+    def estimated_cost_per_analysis(self, now: datetime) -> float:
+        """Средняя стоимость анализа за 30 дней (оценка для бюджета пакетов в полёте)."""
+        avg = self.db.avg_llm_cost("analysis:", now - timedelta(days=30))
+        return avg if avg is not None else self.cfg.analysis.batch_cost_estimate_usd
+
     def collect_batches(self, now: datetime) -> tuple[int, int]:
         """Забрать готовые пакеты: валидные ответы → Analysis, остальные → бэкофф 24 ч."""
         collected = failed = 0
@@ -343,41 +360,53 @@ class Analyzer:
                 ended, results = False, []
             if not ended and not expired:
                 continue
-            seen: set[str] = set()
-            for r in results:
-                if r.custom_id not in items:
-                    continue
-                seen.add(r.custom_id)
-                if r.response:
-                    self._record_usage(r.response, r.custom_id, now)
-                draft = None
-                if r.response and not r.error:
+            if not ended:  # истёк: отменяем, чтобы поздние ответы не списали деньги мимо учёта
+                cancel = getattr(self.llm, "cancel_batch", None)
+                if cancel is not None:
                     try:
-                        draft = AnalysisDraft.model_validate(extract_json(r.response.text))
-                    except (LLMError, ValidationError):
-                        draft = None
-                if draft and r.response:
-                    self._save(
-                        r.custom_id,
-                        draft,
-                        r.response.model,
-                        r.response.cost,
-                        items[r.custom_id],
-                        now,
-                    )
-                    collected += 1
-                else:
-                    self.db.set_kv(f"analysis_failed:{r.custom_id}", iso(now))
+                        cancel(batch_id)
+                    except LLMError as e:
+                        log.warning(
+                            "analysis_batch_cancel_failed", batch_id=batch_id, error=str(e)[:200]
+                        )
+            # Учёт расхода, анализы и закрытие пакета — одной транзакцией: сбой посередине
+            # не оставит пакет открытым с уже записанным llm_usage (повтор посчитал бы его дважды).
+            with self.db.tx():
+                seen: set[str] = set()
+                for r in results:
+                    if r.custom_id not in items:
+                        continue
+                    seen.add(r.custom_id)
+                    if r.response:
+                        self._record_usage(r.response, r.custom_id, now)
+                    draft = None
+                    if r.response and not r.error:
+                        try:
+                            draft = AnalysisDraft.model_validate(extract_json(r.response.text))
+                        except (LLMError, ValidationError):
+                            draft = None
+                    if draft and r.response:
+                        self._save(
+                            r.custom_id,
+                            draft,
+                            r.response.model,
+                            r.response.cost,
+                            items[r.custom_id],
+                            now,
+                        )
+                        collected += 1
+                    else:
+                        self.db.set_kv(f"analysis_failed:{r.custom_id}", iso(now))
+                        failed += 1
+                        log.warning(
+                            "analysis_batch_item_failed",
+                            video_id=r.custom_id,
+                            error=(r.error or "invalid")[:200],
+                        )
+                for vid in set(items) - seen:  # пакет истёк или ответа нет
+                    self.db.set_kv(f"analysis_failed:{vid}", iso(now))
                     failed += 1
-                    log.warning(
-                        "analysis_batch_item_failed",
-                        video_id=r.custom_id,
-                        error=(r.error or "invalid")[:200],
-                    )
-            for vid in set(items) - seen:  # пакет истёк или ответа нет
-                self.db.set_kv(f"analysis_failed:{vid}", iso(now))
-                failed += 1
-            self.db.close_llm_batch(batch_id, now, "ended" if ended else "expired")
+                self.db.close_llm_batch(batch_id, now, "ended" if ended else "expired")
         return collected, failed
 
     def _sync_pending(self, now: datetime) -> TaskResult:

@@ -121,6 +121,8 @@ class AnthropicLLM:
             raise LLMError(f"нет связи с Anthropic API: {type(e).__name__}") from None
         except anthropic.APIStatusError as e:
             raise LLMError(f"Anthropic Batch API: HTTP {e.status_code}") from None
+        except Exception as e:  # обрыв потока результатов, AnthropicError без HTTP-статуса
+            raise LLMError(f"Anthropic Batch API: {type(e).__name__}") from None
 
     def submit_batch(self, requests: Sequence[LLMRequest]) -> str:
         batch = self._batch_call(
@@ -139,9 +141,16 @@ class AnthropicLLM:
         batch = self._batch_call(self._client.messages.batches.retrieve, batch_id)
         return batch.processing_status == "ended"
 
+    def cancel_batch(self, batch_id: str) -> None:
+        """Отменить зависший пакет, чтобы поздние ответы не тратили деньги мимо llm_usage."""
+        self._batch_call(self._client.messages.batches.cancel, batch_id)
+
     def batch_results(self, batch_id: str) -> list[BatchItemResult]:
         out: list[BatchItemResult] = []
-        for item in self._batch_call(self._client.messages.batches.results, batch_id):
+        # Результаты — потоковый JSONL: читаем целиком внутри _batch_call, чтобы обрыв потока
+        # тоже превращался в LLMError.
+        items = self._batch_call(lambda: list(self._client.messages.batches.results(batch_id)))
+        for item in items:
             kind = item.result.type
             if kind != "succeeded":
                 error = getattr(getattr(item.result, "error", None), "type", "") or kind

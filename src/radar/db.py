@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import threading
 from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from datetime import date, datetime
@@ -173,13 +174,44 @@ def _opt_dt(value: str | None) -> datetime | None:
     return parse_dt(value) if value else None
 
 
+class _LockedConnection:
+    """Соединение, общее для потоков бота (asyncio.to_thread): каждый оператор и каждая
+    транзакция tx() целиком выполняются под одним RLock — записи из разных потоков
+    не попадают внутрь чужого BEGIN…COMMIT."""
+
+    def __init__(self, conn: sqlite3.Connection, lock: threading.RLock) -> None:
+        self._conn = conn
+        self.lock = lock
+
+    def execute(self, sql: str, params: Iterable[Any] = ()) -> sqlite3.Cursor:
+        with self.lock:
+            return self._conn.execute(sql, tuple(params))
+
+    def executemany(self, sql: str, seq: Iterable[Iterable[Any]]) -> sqlite3.Cursor:
+        with self.lock:
+            return self._conn.executemany(sql, seq)
+
+    def executescript(self, script: str) -> sqlite3.Cursor:
+        with self.lock:
+            return self._conn.executescript(script)
+
+    def backup(self, target: sqlite3.Connection) -> None:
+        with self.lock:
+            self._conn.backup(target)
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._conn, name)
+
+
 class Database:
     def __init__(self, path: Path | str) -> None:
         self.path = str(path)
         if self.path != ":memory:":
             Path(self.path).parent.mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(self.path, isolation_level=None, check_same_thread=False)
-        self.conn.row_factory = sqlite3.Row
+        raw = sqlite3.connect(self.path, isolation_level=None, check_same_thread=False)
+        raw.row_factory = sqlite3.Row
+        self._lock = threading.RLock()
+        self.conn = _LockedConnection(raw, self._lock)
         self.conn.execute("PRAGMA foreign_keys = ON")
         if self.path != ":memory:":
             self.conn.execute("PRAGMA journal_mode = WAL")
@@ -212,22 +244,26 @@ class Database:
 
     @contextmanager
     def tx(self) -> Iterator[None]:
-        if self.conn.in_transaction:
-            yield
-            return
-        self.conn.execute("BEGIN")
-        try:
-            yield
-        except BaseException:
-            self.conn.execute("ROLLBACK")
-            raise
-        self.conn.execute("COMMIT")
+        # Лок берётся до проверки in_transaction: чужая открытая транзакция ждёт своего COMMIT.
+        with self._lock:
+            if self.conn.in_transaction:
+                yield
+                return
+            self.conn.execute("BEGIN")
+            try:
+                yield
+            except BaseException:
+                self.conn.execute("ROLLBACK")
+                raise
+            self.conn.execute("COMMIT")
 
     def _all(self, sql: str, params: Iterable[Any] = ()) -> list[sqlite3.Row]:
-        return self.conn.execute(sql, tuple(params)).fetchall()
+        with self._lock:
+            return self.conn.execute(sql, tuple(params)).fetchall()
 
     def _one(self, sql: str, params: Iterable[Any] = ()) -> sqlite3.Row | None:
-        return self.conn.execute(sql, tuple(params)).fetchone()
+        with self._lock:
+            return self.conn.execute(sql, tuple(params)).fetchone()
 
     # --- ниши ---------------------------------------------------------------
 
@@ -620,6 +656,13 @@ class Database:
             "VALUES (?,?,?,?,?,?)",
             (purpose, model, input_tokens, output_tokens, cost, iso(at)),
         )
+
+    def avg_llm_cost(self, purpose_prefix: str, since: datetime) -> float | None:
+        row = self._one(
+            "SELECT AVG(cost) AS a, COUNT(*) AS n FROM llm_usage WHERE purpose LIKE ? AND at>=? AND cost>0",
+            (purpose_prefix + "%", iso(since)),
+        )
+        return float(row["a"]) if row and row["n"] else None
 
     def llm_cost_since(self, since: datetime) -> float:
         row = self._one(

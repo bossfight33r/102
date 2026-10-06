@@ -476,23 +476,23 @@ def llm_summary(app: App, report: TrendReport, now: datetime) -> str | None:
 
 def run_trends(
     app: App, now: datetime, days: int, *, with_llm: bool
-) -> tuple[TrendReport, list[ThresholdRecommendation], str | None]:
-    """Построить тренды, записать content_hints.yaml и threshold_recommendations.yaml."""
+) -> tuple[TrendReport, list[ThresholdRecommendation], str | None, dict[str, list[dict[str, str]]]]:
+    """Тренды + экспорт content_hints, threshold_recommendations, audience_questions."""
     report = build_trends(app.db, app.config, now, days)
     write_content_hints(report, app.settings.exports_dir)
     recs = threshold_recommendations(app.db, app.config)
     write_recommendations(recs, app.settings.exports_dir, now)
-    write_audience_questions(audience_questions(app.db, now, days), app.settings.exports_dir, now)
+    questions = audience_questions(app.db, now, days)
+    write_audience_questions(questions, app.settings.exports_dir, now)
     summary = llm_summary(app, report, now) if with_llm and app.has_llm() else None
-    return report, recs, summary
+    return report, recs, summary, questions
 
 
 def send_weekly_report(app: App, now: datetime) -> TaskResult:
-    report, recs, summary = run_trends(
+    report, recs, summary, questions = run_trends(
         app, now, app.config.trends.days, with_llm=app.config.trends.use_llm
     )
     msgs = [OutMessage(text=render_trends_text(report, summary))]
-    questions = audience_questions(app.db, now, app.config.trends.days)
     if questions:
         msgs.append(OutMessage(text=render_questions(app.db, questions)))
     if recs:

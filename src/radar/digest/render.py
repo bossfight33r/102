@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from datetime import datetime, timedelta
 from html import escape, unescape
 
 from radar.bot.keyboards import feedback_buttons
@@ -206,3 +207,17 @@ def render_digest_markdown(digest: Digest, intro: str | None, db: Database | Non
             out.append(f"- {i.why_short}")
         out.append("")
     return "\n".join(out)
+
+
+def details_text(db: Database, video_id: str, analysis: Analysis) -> str:
+    """Полный Analysis + цифры скоринга и спарклайн динамики (бот «Подробнее», radar analyze)."""
+    video = db.get_video(video_id)
+    baseline = db.get_baseline(video.channel_id, video.format) if video else None
+    metrics = render_metrics(db.get_outlier(video_id), baseline, db.snapshots_for(video_id))
+    return render_analysis(analysis, video, metrics)
+
+
+def llm_spend_line(db: Database, limit_usd: float, now: datetime) -> str:
+    day = db.llm_cost_since(now - timedelta(hours=24))
+    week = db.llm_cost_since(now - timedelta(days=7))
+    return f"LLM: ${day:.2f} за 24 ч (лимит ${limit_usd:.2f}), ${week:.2f} за 7 дней"

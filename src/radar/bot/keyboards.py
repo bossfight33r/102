@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from typing import TYPE_CHECKING
 
 from radar.schemas import Button, FeedbackAction
+
+if TYPE_CHECKING:
+    from aiogram.types import InlineKeyboardMarkup
 
 ACTION_CODES = {
     FeedbackAction.TO_TOPICS: "t",
@@ -46,6 +49,8 @@ def parse_callback(data: str) -> tuple[str, str, str] | None:
 
 
 def to_markup(buttons: list[list[Button]]) -> InlineKeyboardMarkup:
+    from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup  # aiogram — только боту
+
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text=b.text, callback_data=b.callback_data) for b in row]

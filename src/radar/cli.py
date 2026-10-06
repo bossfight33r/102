@@ -278,10 +278,9 @@ def analyze(
     ) as e:
         fail(str(e))
         return
-    from radar.bot.handlers import details_text
-    from radar.digest.render import plain
+    from radar.digest.render import details_text, plain
 
-    typer.echo(plain(details_text(a, an.video_id, an)))
+    typer.echo(plain(details_text(a.db, an.video_id, an)))
 
 
 # --- дайджест, tick, бот ----------------------------------------------------------
@@ -370,7 +369,7 @@ def trends(
     from radar.trends import render_recommendations, render_trends_text, run_trends
 
     a = get_app()
-    report, recs, summary = run_trends(a, current_time(), days, with_llm=llm)
+    report, recs, summary, _ = run_trends(a, current_time(), days, with_llm=llm)
     typer.echo(plain(render_trends_text(report, summary)))
     typer.echo("")
     typer.echo(plain(render_recommendations(recs)))
@@ -402,9 +401,9 @@ def quota(
         typer.echo(f"⏸ Пауза после quotaExceeded до {st['paused_until']}")
     for method, purpose, calls, units in st["breakdown"]:  # type: ignore[union-attr]
         typer.echo(f"  {method:<22} {purpose:<28} вызовов {calls:<5} ед. {units}")
-    from radar.bot.handlers import llm_spend_line
+    from radar.digest.render import llm_spend_line
 
-    typer.echo(llm_spend_line(a, current_time()))
+    typer.echo(llm_spend_line(a.db, a.config.analysis.max_cost_usd_per_day, current_time()))
 
 
 def _quota_plan(a: App) -> None:

@@ -137,27 +137,31 @@ def forecast_daily_units(db: Database, cfg: AppConfig, now: datetime) -> list[tu
         len(db.list_outliers(since=week_ago, min_score=cfg.analysis.score_threshold)) / 7
     )
 
+    def per_day(batches: int, interval_hours: float, cost: int) -> int:
+        """Вызовов в сутки с округлением вверх: round(24/48) дал бы 0 (банковское округление)."""
+        return math.ceil(batches * 24 / interval_hours * cost)
+
     rows = [
         (
             "watchlist",
-            round(watching * polls * q["playlistItems.list"]),
+            math.ceil(watching * polls * q["playlistItems.list"]),
             f"{watching} каналов × {polls:g} опросов",
         ),
         (
             "подписчики",
-            math.ceil(watching / 50)
-            * round(24 / cfg.watchlist.channel_refresh_hours)
-            * q["channels.list"],
+            per_day(
+                math.ceil(watching / 50), cfg.watchlist.channel_refresh_hours, q["channels.list"]
+            ),
             f"⌈{watching}/50⌉ × {24 / cfg.watchlist.channel_refresh_hours:g}",
         ),
         (
             f"снимки <{s.fresh_days}д",
-            math.ceil(fresh / 50) * round(24 / s.fresh_interval_hours) * q["videos.list"],
+            per_day(math.ceil(fresh / 50), s.fresh_interval_hours, q["videos.list"]),
             f"⌈{fresh}/50⌉ × {24 / s.fresh_interval_hours:g}",
         ),
         (
             f"снимки ≤{s.mid_days}д",
-            math.ceil(mid / 50) * round(24 / s.mid_interval_hours) * q["videos.list"],
+            per_day(math.ceil(mid / 50), s.mid_interval_hours, q["videos.list"]),
             f"⌈{mid}/50⌉ × {24 / s.mid_interval_hours:g}",
         ),
         (

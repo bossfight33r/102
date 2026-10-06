@@ -14,7 +14,9 @@ from aiogram.types import CallbackQuery, Message, TelegramObject
 
 from radar.bot.keyboards import CODE_ACTIONS, candidate_buttons, parse_callback, to_markup
 from radar.digest.build import build_digest
-from radar.digest.render import human, join_limited, render_analysis, render_digest, render_metrics
+from radar.digest.render import details_text as _details_text
+from radar.digest.render import human, join_limited, render_digest
+from radar.digest.render import llm_spend_line as _llm_spend_line
 from radar.export.suggestions import add_to_topics
 from radar.log import get_logger
 from radar.schemas import Analysis, ChannelStatus, Feedback, FeedbackAction, OutMessage
@@ -79,11 +81,7 @@ def handle_feedback(
 
 
 def details_text(app: App, video_id: str, analysis: Analysis) -> str:
-    """Полный Analysis + цифры скоринга и спарклайн динамики."""
-    video = app.db.get_video(video_id)
-    baseline = app.db.get_baseline(video.channel_id, video.format) if video else None
-    metrics = render_metrics(app.db.get_outlier(video_id), baseline, app.db.snapshots_for(video_id))
-    return render_analysis(analysis, video, metrics)
+    return _details_text(app.db, video_id, analysis)
 
 
 def handle_candidate(app: App, code: str, channel_id: str) -> str:
@@ -169,10 +167,7 @@ def cmd_quota(app: App, now: datetime) -> str:
 
 
 def llm_spend_line(app: App, now: datetime) -> str:
-    day = app.db.llm_cost_since(now - timedelta(hours=24))
-    week = app.db.llm_cost_since(now - timedelta(days=7))
-    limit = app.config.analysis.max_cost_usd_per_day
-    return f"LLM: ${day:.2f} за 24 ч (лимит ${limit:.2f}), ${week:.2f} за 7 дней"
+    return _llm_spend_line(app.db, app.config.analysis.max_cost_usd_per_day, now)
 
 
 def cmd_analyze(app: App, ref: str, now: datetime) -> list[OutMessage]:

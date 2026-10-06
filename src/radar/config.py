@@ -122,6 +122,7 @@ class AnalysisConfig(_Cfg):
     use_batch: bool = False
     batch_max_items: int = Field(default=20, ge=1, le=1000)
     batch_timeout_hours: float = 25
+    batch_cost_estimate_usd: float = Field(default=0.05, gt=0, description="пока нет истории")
 
 
 class LLMConfig(_Cfg):

@@ -84,6 +84,7 @@ class FakeBatchLLM(FakeLLM):
         self.batches: dict[str, list[LLMRequest]] = {}
         self.checks: dict[str, int] = {}
         self.fail_ids: set[str] = set()
+        self.cancelled: set[str] = set()
 
     def submit_batch(self, requests: Sequence[LLMRequest]) -> str:
         batch_id = f"msgbatch_{len(self.batches) + 1}"
@@ -94,6 +95,9 @@ class FakeBatchLLM(FakeLLM):
     def batch_ended(self, batch_id: str) -> bool:
         self.checks[batch_id] += 1
         return self.checks[batch_id] > self.ready_after
+
+    def cancel_batch(self, batch_id: str) -> None:
+        self.cancelled.add(batch_id)
 
     def batch_results(self, batch_id: str) -> list[BatchItemResult]:
         out = []

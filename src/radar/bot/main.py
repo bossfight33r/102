@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from aiogram import Bot, Dispatcher
@@ -44,17 +45,28 @@ def build_dispatcher(app: App) -> Dispatcher:
 async def watchdog(bot: Bot, app: App) -> None:
     """Фоновая проверка: tick давно не запускался → алерт админам (бот живёт отдельно от tick)."""
     from radar.app import current_time
-    from radar.bot.handlers import stale_tick_alert
 
     while True:
-        try:
-            text = stale_tick_alert(app, current_time())
-            if text:
-                for chat_id in app.settings.admin_ids:
-                    await bot.send_message(chat_id, text)
-        except Exception as e:  # watchdog не должен ронять бота
-            log.warning("watchdog_failed", error=type(e).__name__)
+        await watchdog_once(bot, app, current_time())
         await asyncio.sleep(app.config.bot.watchdog_check_minutes * 60)
+
+
+async def watchdog_once(bot: Bot, app: App, now: datetime) -> int:
+    """Одна проверка watchdog. Возвращает число доставленных алертов."""
+    from radar.bot.handlers import stale_tick_alert
+
+    sent = 0
+    try:
+        text = stale_tick_alert(app, now)
+        for chat_id in app.settings.admin_ids if text else []:
+            try:  # сбой у одного админа не лишает алерта остальных
+                await bot.send_message(chat_id, text)  # type: ignore[arg-type]
+                sent += 1
+            except Exception as e:
+                log.warning("watchdog_send_failed", chat_id=chat_id, error=type(e).__name__)
+    except Exception as e:  # watchdog не должен ронять бота
+        log.warning("watchdog_failed", error=type(e).__name__)
+    return sent
 
 
 async def _run(app: App, token: str) -> None:
