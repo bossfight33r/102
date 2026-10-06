@@ -340,6 +340,90 @@
    {
     "kind": "youtube#playlistItem",
     "snippet": {
+     "publishedAt": "2026-08-06T03:00:00Z",
+     "resourceId": {
+      "kind": "youtube#video",
+      "videoId": "tgL024aaaaa"
+     }
+    },
+    "contentDetails": {
+     "videoId": "tgL024aaaaa",
+     "videoPublishedAt": "2026-08-06T03:00:00Z"
+    }
+   },
+   {
+    "kind": "youtube#playlistItem",
+    "snippet": {
+     "publishedAt": "2026-08-03T15:00:00Z",
+     "resourceId": {
+      "kind": "youtube#video",
+      "videoId": "tgL025aaaaa"
+     }
+    },
+    "contentDetails": {
+     "videoId": "tgL025aaaaa",
+     "videoPublishedAt": "2026-08-03T15:00:00Z"
+    }
+   },
+   {
+    "kind": "youtube#playlistItem",
+    "snippet": {
+     "publishedAt": "2026-08-01T03:00:00Z",
+     "resourceId": {
+      "kind": "youtube#video",
+      "videoId": "tgL026aaaaa"
+     }
+    },
+    "contentDetails": {
+     "videoId": "tgL026aaaaa",
+     "videoPublishedAt": "2026-08-01T03:00:00Z"
+    }
+   },
+   {
+    "kind": "youtube#playlistItem",
+    "snippet": {
+     "publishedAt": "2026-07-29T15:00:00Z",
+     "resourceId": {
+      "kind": "youtube#video",
+      "videoId": "tgL027aaaaa"
+     }
+    },
+    "contentDetails": {
+     "videoId": "tgL027aaaaa",
+     "videoPublishedAt": "2026-07-29T15:00:00Z"
+    }
+   },
+   {
+    "kind": "youtube#playlistItem",
+    "snippet": {
+     "publishedAt": "2026-07-27T03:00:00Z",
+     "resourceId": {
+      "kind": "youtube#video",
+      "videoId": "tgL028aaaaa"
+     }
+    },
+    "contentDetails": {
+     "videoId": "tgL028aaaaa",
+     "videoPublishedAt": "2026-07-27T03:00:00Z"
+    }
+   },
+   {
+    "kind": "youtube#playlistItem",
+    "snippet": {
+     "publishedAt": "2026-07-24T15:00:00Z",
+     "resourceId": {
+      "kind": "youtube#video",
+      "videoId": "tgL029aaaaa"
+     }
+    },
+    "contentDetails": {
+     "videoId": "tgL029aaaaa",
+     "videoPublishedAt": "2026-07-24T15:00:00Z"
+    }
+   },
+   {
+    "kind": "youtube#playlistItem",
+    "snippet": {
      "publishedAt": "2026-09-26T06:00:00Z",
      "resourceId": {
       "kind": "youtube#video",

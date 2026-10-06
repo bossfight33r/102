@@ -5,8 +5,10 @@
 ## Готово
 - **Фаза 0 — Foundation**: структура, конфиг, схемы, БД, логирование с маскировкой секретов, YouTube-клиент (HTTP + фейк + квота), LLM (Anthropic + фейк), CLI-скелет, `radar doctor`, docs.
 
+- **Фаза 1 — Сбор**: watchlist, снимки, discovery, кандидаты, QuotaPlanner в задачах; `radar poll`, `radar discover`.
+
 ## Не готово
-- Фазы 1–5.
+- Фазы 2–5.
 
 ## Блокеры
 - нет
@@ -17,4 +19,4 @@ make setup && uv run radar doctor
 ```
 
 ## Следующий шаг
-Фаза 1 — сбор: watchlist, снимки, discovery, кандидаты.
+Фаза 2 — скоринг: базлайны, ratio, z, velocity, score, reason_flags.

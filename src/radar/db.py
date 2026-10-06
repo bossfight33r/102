@@ -394,6 +394,19 @@ class Database:
             self._row_to_video(r) for r in self._all(sql + " ORDER BY published_at DESC", params)
         ]
 
+    def videos_for_snapshots(
+        self, published_after: datetime
+    ) -> list[tuple[str, datetime, datetime | None]]:
+        """(video_id, published_at, last_snapshot_at) видео каналов в статусе watching."""
+        rows = self._all(
+            "SELECT v.id, v.published_at, MAX(s.collected_at) AS last_at FROM videos v "
+            "JOIN channels c ON c.id = v.channel_id AND c.status = 'watching' "
+            "LEFT JOIN video_snapshots s ON s.video_id = v.id "
+            "WHERE v.published_at >= ? GROUP BY v.id ORDER BY v.published_at DESC",
+            (iso(published_after),),
+        )
+        return [(r["id"], parse_dt(r["published_at"]), _opt_dt(r["last_at"])) for r in rows]
+
     # --- снимки (append-only) -------------------------------------------------
 
     def add_snapshots(self, snaps: Iterable[VideoSnapshot]) -> int:

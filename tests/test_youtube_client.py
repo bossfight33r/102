@@ -73,7 +73,7 @@ def test_list_uploads_paginates_and_stops(db, fake_yt, now):
     fake_yt.page_size = 10
     yt = _yt(db, fake_yt)
     items = yt.list_uploads("UUtechguru00000000000000", purpose="t", now=now, max_items=100)
-    assert len(items) == 36
+    assert len(items) == 42
     recent = yt.list_uploads(
         "UUtechguru00000000000000",
         purpose="t",

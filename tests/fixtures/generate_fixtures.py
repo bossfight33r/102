@@ -95,7 +95,7 @@ CHAPTERS = "0:00 Вступление\n1:30 Настройка\n5:10 Приме�
 
 # @techguru: 24 long + 10 shorts, по одному аутлайеру в каждом формате
 tg = "UCtechguru00000000000000"
-for i in range(24):
+for i in range(30):
     pub = NOW - timedelta(days=1 + i * 2.5, hours=3)
     age = (NOW - pub).total_seconds() / 86400
     video(

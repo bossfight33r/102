@@ -279,3 +279,13 @@ class OutMessage(Model):
     text: str
     photo_url: str | None = None
     buttons: list[list[Button]] = Field(default_factory=list)
+
+
+# --- результаты задач ---------------------------------------------------------
+
+
+class TaskResult(Model):
+    name: str
+    stats: dict[str, int | float | str] = Field(default_factory=dict)
+    deferred: bool = False
+    message: str = ""

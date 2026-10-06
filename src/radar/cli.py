@@ -9,7 +9,7 @@ from typing import Annotated
 import typer
 
 from radar.app import App, ConfigError, current_time
-from radar.schemas import ChannelStatus, FormatPref, Niche
+from radar.schemas import ChannelStatus, FormatPref, Niche, TaskResult
 
 app = typer.Typer(
     help="Outlier Radar: аутлайеры YouTube → идеи для моего канала.", no_args_is_help=True
@@ -160,6 +160,48 @@ def channel_approve(channel_id: str) -> None:
 def channel_hide(channel_id: str) -> None:
     """Скрыть канал (не собирать и не показывать)."""
     _set_status(channel_id, ChannelStatus.HIDDEN)
+
+
+# --- сбор ----------------------------------------------------------------------
+
+
+def _print_result(r: TaskResult) -> None:
+    stats = ", ".join(f"{k}={v}" for k, v in r.stats.items())
+    suffix = f" — отложено: {r.message}" if r.deferred else ""
+    typer.echo(f"{r.name}: {stats}{suffix}")
+
+
+@app.command()
+def discover() -> None:
+    """Discovery по seed_queries ниш в пределах discovery_per_day и бюджета квоты."""
+    from radar.collect.discovery import run_discovery
+
+    a = get_app()
+    _print_result(
+        run_discovery(
+            a.youtube, a.db, a.config, a.db.list_niches(enabled_only=True), current_time()
+        )
+    )
+    typer.echo(
+        f"Кандидатов всего: {len(a.db.list_channels(status=ChannelStatus.CANDIDATE))} (radar channel list --status candidate)"
+    )
+
+
+@app.command()
+def poll(
+    force: Annotated[
+        bool, typer.Option("--force", help="Опросить все каналы, не глядя на интервал")
+    ] = False,
+) -> None:
+    """Сбор: seed-каналы, новые видео watchlist, снимки статистики."""
+    from radar.collect.snapshots import collect_snapshots
+    from radar.collect.watchlist import add_seed_channels, poll_watchlist
+
+    a = get_app()
+    now = current_time()
+    _print_result(add_seed_channels(a.youtube, a.db, a.db.list_niches(enabled_only=True), now))
+    _print_result(poll_watchlist(a.youtube, a.db, a.config, now, force=force))
+    _print_result(collect_snapshots(a.youtube, a.db, a.config, now))
 
 
 # --- квота и диагностика --------------------------------------------------------
