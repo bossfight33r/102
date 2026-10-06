@@ -1,0 +1,122 @@
+{
+ "tgLONGOUT01": {
+  "items": [
+   {
+    "kind": "youtube#commentThread",
+    "snippet": {
+     "topLevelComment": {
+      "snippet": {
+       "textOriginal": "А какая из них работает бесплатно?",
+       "likeCount": 340,
+       "authorDisplayName": "viewer"
+      }
+     }
+    }
+   },
+   {
+    "kind": "youtube#commentThread",
+    "snippet": {
+     "topLevelComment": {
+      "snippet": {
+       "textOriginal": "Можно отдельное видео про настройку на Mac?",
+       "likeCount": 210,
+       "authorDisplayName": "viewer"
+      }
+     }
+    }
+   },
+   {
+    "kind": "youtube#commentThread",
+    "snippet": {
+     "topLevelComment": {
+      "snippet": {
+       "textOriginal": "Наконец-то честный тест без рекламы",
+       "likeCount": 150,
+       "authorDisplayName": "viewer"
+      }
+     }
+    }
+   },
+   {
+    "kind": "youtube#commentThread",
+    "snippet": {
+     "topLevelComment": {
+      "snippet": {
+       "textOriginal": "Как это связать с Google Таблицами?",
+       "likeCount": 90,
+       "authorDisplayName": "viewer"
+      }
+     }
+    }
+   },
+   {
+    "kind": "youtube#commentThread",
+    "snippet": {
+     "topLevelComment": {
+      "snippet": {
+       "textOriginal": "Сколько в итоге экономите времени в неделю?",
+       "likeCount": 40,
+       "authorDisplayName": "viewer"
+      }
+     }
+    }
+   }
+  ]
+ },
+ "tgSHORTOUT1": {
+  "items": [
+   {
+    "kind": "youtube#commentThread",
+    "snippet": {
+     "topLevelComment": {
+      "snippet": {
+       "textOriginal": "Скинь сам промпт текстом",
+       "likeCount": 500,
+       "authorDisplayName": "viewer"
+      }
+     }
+    }
+   },
+   {
+    "kind": "youtube#commentThread",
+    "snippet": {
+     "topLevelComment": {
+      "snippet": {
+       "textOriginal": "Работает ли на русском?",
+       "likeCount": 120,
+       "authorDisplayName": "viewer"
+      }
+     }
+    }
+   }
+  ]
+ },
+ "sbBREAKOUT1": {
+  "items": [
+   {
+    "kind": "youtube#commentThread",
+    "snippet": {
+     "topLevelComment": {
+      "snippet": {
+       "textOriginal": "Сколько это стоило в месяц?",
+       "likeCount": 80,
+       "authorDisplayName": "viewer"
+      }
+     }
+    }
+   },
+   {
+    "kind": "youtube#commentThread",
+    "snippet": {
+     "topLevelComment": {
+      "snippet": {
+       "textOriginal": "Покажи, как ты делал оплату",
+       "likeCount": 60,
+       "authorDisplayName": "viewer"
+      }
+     }
+    }
+   }
+  ]
+ }
+}

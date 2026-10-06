@@ -1,0 +1,16 @@
+# Ниши для мониторинга. Поля — docs/niches.md.
+niches:
+  - id: ai-tools
+    name: AI-инструменты для работы
+    language: ru
+    region: RU
+    seed_queries:
+      - нейросети для работы
+      - ai инструменты
+    seed_channels:
+      - "@techguru"
+    format: both            # shorts | long | both
+    min_subs: 3000
+    max_subs: 1000000
+    discovery_per_day: 2    # search.list вызовов в сутки (100 ед. каждый)
+    enabled: true

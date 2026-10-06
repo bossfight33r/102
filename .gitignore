@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.env
+data/
+config/niches.yaml
+config/channel_profile.yaml
+config/settings.yaml
+*.db
+*.log
+.DS_Store

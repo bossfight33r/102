@@ -1,0 +1,104 @@
+{
+ "kind": "youtube#channelListResponse",
+ "items": [
+  {
+   "kind": "youtube#channel",
+   "id": "UCtechguru00000000000000",
+   "snippet": {
+    "title": "Tech Guru",
+    "customUrl": "@techguru",
+    "description": "Канал Tech Guru"
+   },
+   "statistics": {
+    "viewCount": "1000000",
+    "videoCount": "50",
+    "hiddenSubscriberCount": false,
+    "subscriberCount": "120000"
+   },
+   "contentDetails": {
+    "relatedPlaylists": {
+     "uploads": "UUtechguru00000000000000"
+    }
+   }
+  },
+  {
+   "kind": "youtube#channel",
+   "id": "UCsmallbuilder0000000000",
+   "snippet": {
+    "title": "Small Builder",
+    "customUrl": "@smallbuilder",
+    "description": "Канал Small Builder"
+   },
+   "statistics": {
+    "viewCount": "1000000",
+    "videoCount": "50",
+    "hiddenSubscriberCount": false,
+    "subscriberCount": "4000"
+   },
+   "contentDetails": {
+    "relatedPlaylists": {
+     "uploads": "UUsmallbuilder0000000000"
+    }
+   }
+  },
+  {
+   "kind": "youtube#channel",
+   "id": "UCcandidate1000000000000",
+   "snippet": {
+    "title": "AI Practice",
+    "customUrl": "@aipractice",
+    "description": "Канал AI Practice"
+   },
+   "statistics": {
+    "viewCount": "1000000",
+    "videoCount": "50",
+    "hiddenSubscriberCount": false,
+    "subscriberCount": "50000"
+   },
+   "contentDetails": {
+    "relatedPlaylists": {
+     "uploads": "UUcandidate1000000000000"
+    }
+   }
+  },
+  {
+   "kind": "youtube#channel",
+   "id": "UCbigmedia00000000000000",
+   "snippet": {
+    "title": "Big Media",
+    "customUrl": "@bigmedia",
+    "description": "Канал Big Media"
+   },
+   "statistics": {
+    "viewCount": "1000000",
+    "videoCount": "50",
+    "hiddenSubscriberCount": false,
+    "subscriberCount": "5000000"
+   },
+   "contentDetails": {
+    "relatedPlaylists": {
+     "uploads": "UUbigmedia00000000000000"
+    }
+   }
+  },
+  {
+   "kind": "youtube#channel",
+   "id": "UChiddensubs000000000000",
+   "snippet": {
+    "title": "Hidden Subs",
+    "customUrl": "@hiddensubs",
+    "description": "Канал Hidden Subs"
+   },
+   "statistics": {
+    "viewCount": "1000000",
+    "videoCount": "50",
+    "hiddenSubscriberCount": true
+   },
+   "contentDetails": {
+    "relatedPlaylists": {
+     "uploads": "UUhiddensubs000000000000"
+    }
+   }
+  }
+ ]
+}

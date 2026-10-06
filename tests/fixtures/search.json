@@ -1,0 +1,106 @@
+{
+ "нейросети для работы": {
+  "items": [
+   {
+    "kind": "youtube#searchResult",
+    "id": {
+     "kind": "youtube#video",
+     "videoId": "apL000aaaaa"
+    },
+    "snippet": {
+     "publishedAt": "2026-10-03T06:00:00Z",
+     "channelId": "UCcandidate1000000000000",
+     "title": "AI на практике 0"
+    }
+   },
+   {
+    "kind": "youtube#searchResult",
+    "id": {
+     "kind": "youtube#video",
+     "videoId": "apL001aaaaa"
+    },
+    "snippet": {
+     "publishedAt": "2026-09-27T06:00:00Z",
+     "channelId": "UCcandidate1000000000000",
+     "title": "AI на практике 1"
+    }
+   },
+   {
+    "kind": "youtube#searchResult",
+    "id": {
+     "kind": "youtube#video",
+     "videoId": "bigV000aaaa"
+    },
+    "snippet": {
+     "publishedAt": "2026-10-01T06:00:00Z",
+     "channelId": "UCbigmedia00000000000000",
+     "title": "Видео bigmed 0"
+    }
+   },
+   {
+    "kind": "youtube#searchResult",
+    "id": {
+     "kind": "youtube#video",
+     "videoId": "tgLONGOUT01"
+    },
+    "snippet": {
+     "publishedAt": "2026-09-26T06:00:00Z",
+     "channelId": "UCtechguru00000000000000",
+     "title": "7 нейросетей"
+    }
+   },
+   {
+    "kind": "youtube#searchResult",
+    "id": {
+     "kind": "youtube#video",
+     "videoId": "oldOLDOLD01"
+    },
+    "snippet": {
+     "publishedAt": "2025-09-01T06:00:00Z",
+     "channelId": "UCcandidate1000000000000",
+     "title": "Старое видео"
+    }
+   }
+  ]
+ },
+ "ai инструменты": {
+  "items": [
+   {
+    "kind": "youtube#searchResult",
+    "id": {
+     "kind": "youtube#video",
+     "videoId": "apL002aaaaa"
+    },
+    "snippet": {
+     "publishedAt": "2026-09-21T06:00:00Z",
+     "channelId": "UCcandidate1000000000000",
+     "title": "AI на практике 2"
+    }
+   },
+   {
+    "kind": "youtube#searchResult",
+    "id": {
+     "kind": "youtube#video",
+     "videoId": "sbBREAKOUT1"
+    },
+    "snippet": {
+     "publishedAt": "2026-09-24T06:00:00Z",
+     "channelId": "UCsmallbuilder0000000000",
+     "title": "SaaS за выходные"
+    }
+   },
+   {
+    "kind": "youtube#searchResult",
+    "id": {
+     "kind": "youtube#video",
+     "videoId": "hidV000aaaa"
+    },
+    "snippet": {
+     "publishedAt": "2026-10-01T06:00:00Z",
+     "channelId": "UChiddensubs000000000000",
+     "title": "Видео hidden 0"
+    }
+   }
+  ]
+ }
+}

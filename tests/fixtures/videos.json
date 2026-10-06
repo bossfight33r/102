@@ -1,0 +1,1775 @@
+{
+ "kind": "youtube#videoListResponse",
+ "items": [
+  {
+   "kind": "youtube#video",
+   "id": "tgL000aaaaa",
+   "snippet": {
+    "publishedAt": "2026-10-05T03:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #0",
+    "description": "0:00 Вступление\n1:30 Настройка\n5:10 Пример\n9:45 Итоги",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL000aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL000aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT20M7S"
+   },
+   "statistics": {
+    "viewCount": "6862",
+    "likeCount": "274",
+    "commentCount": "22"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL001aaaaa",
+   "snippet": {
+    "publishedAt": "2026-10-02T15:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #1",
+    "description": "Описание: Разбор AI-инструмента #1",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL001aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL001aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT13M8S"
+   },
+   "statistics": {
+    "viewCount": "18792",
+    "likeCount": "751",
+    "commentCount": "62"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL002aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-30T03:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #2",
+    "description": "Описание: Разбор AI-инструмента #2",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL002aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL002aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT24M34S"
+   },
+   "statistics": {
+    "viewCount": "13524",
+    "likeCount": "540",
+    "commentCount": "45"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL003aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-27T15:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #3",
+    "description": "0:00 Вступление\n1:30 Настройка\n5:10 Пример\n9:45 Итоги",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL003aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL003aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT10M5S"
+   },
+   "statistics": {
+    "viewCount": "15670",
+    "likeCount": "626",
+    "commentCount": "52"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL004aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-25T03:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #4",
+    "description": "Описание: Разбор AI-инструмента #4",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL004aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL004aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT10M35S"
+   },
+   "statistics": {
+    "viewCount": "13829",
+    "likeCount": "553",
+    "commentCount": "46"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL005aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-22T15:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #5",
+    "description": "Описание: Разбор AI-инструмента #5",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL005aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL005aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT18M26S"
+   },
+   "statistics": {
+    "viewCount": "14936",
+    "likeCount": "597",
+    "commentCount": "49"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL006aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-20T03:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #6",
+    "description": "0:00 Вступление\n1:30 Настройка\n5:10 Пример\n9:45 Итоги",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL006aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL006aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT22M55S"
+   },
+   "statistics": {
+    "viewCount": "22749",
+    "likeCount": "909",
+    "commentCount": "75"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL007aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-17T15:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #7",
+    "description": "Описание: Разбор AI-инструмента #7",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL007aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL007aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT12M13S"
+   },
+   "statistics": {
+    "viewCount": "26878",
+    "likeCount": "1075",
+    "commentCount": "89"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL008aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-15T03:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #8",
+    "description": "Описание: Разбор AI-инструмента #8",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL008aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL008aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT11M24S"
+   },
+   "statistics": {
+    "viewCount": "25188",
+    "likeCount": "1007",
+    "commentCount": "83"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL009aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-12T15:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #9",
+    "description": "0:00 Вступление\n1:30 Настройка\n5:10 Пример\n9:45 Итоги",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL009aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL009aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT21M29S"
+   },
+   "statistics": {
+    "viewCount": "35647",
+    "likeCount": "1425",
+    "commentCount": "118"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL010aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-10T03:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #10",
+    "description": "Описание: Разбор AI-инструмента #10",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL010aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL010aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT16M5S"
+   },
+   "statistics": {
+    "viewCount": "22795",
+    "likeCount": "911",
+    "commentCount": "75"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL011aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-07T15:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #11",
+    "description": "Описание: Разбор AI-инструмента #11",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL011aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL011aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT19M56S"
+   },
+   "statistics": {
+    "viewCount": "28869",
+    "likeCount": "1154",
+    "commentCount": "96"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL012aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-05T03:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #12",
+    "description": "0:00 Вступление\n1:30 Настройка\n5:10 Пример\n9:45 Итоги",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL012aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL012aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT21M4S"
+   },
+   "statistics": {
+    "viewCount": "15540",
+    "likeCount": "621",
+    "commentCount": "51"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL013aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-02T15:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #13",
+    "description": "Описание: Разбор AI-инструмента #13",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL013aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL013aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT14M5S"
+   },
+   "statistics": {
+    "viewCount": "18204",
+    "likeCount": "728",
+    "commentCount": "60"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL014aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-31T03:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #14",
+    "description": "Описание: Разбор AI-инструмента #14",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL014aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL014aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT23M23S"
+   },
+   "statistics": {
+    "viewCount": "15979",
+    "likeCount": "639",
+    "commentCount": "53"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL015aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-28T15:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #15",
+    "description": "0:00 Вступление\n1:30 Настройка\n5:10 Пример\n9:45 Итоги",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL015aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL015aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT20M17S"
+   },
+   "statistics": {
+    "viewCount": "26291",
+    "likeCount": "1051",
+    "commentCount": "87"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL016aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-26T03:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #16",
+    "description": "Описание: Разбор AI-инструмента #16",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL016aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL016aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT11M38S"
+   },
+   "statistics": {
+    "viewCount": "22646",
+    "likeCount": "905",
+    "commentCount": "75"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL017aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-23T15:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #17",
+    "description": "Описание: Разбор AI-инструмента #17",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL017aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL017aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT13M10S"
+   },
+   "statistics": {
+    "viewCount": "19561",
+    "likeCount": "782",
+    "commentCount": "65"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL018aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-21T03:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #18",
+    "description": "0:00 Вступление\n1:30 Настройка\n5:10 Пример\n9:45 Итоги",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL018aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL018aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT24M40S"
+   },
+   "statistics": {
+    "viewCount": "22178",
+    "likeCount": "887",
+    "commentCount": "73"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL019aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-18T15:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #19",
+    "description": "Описание: Разбор AI-инструмента #19",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL019aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL019aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT15M53S"
+   },
+   "statistics": {
+    "viewCount": "19112",
+    "likeCount": "764",
+    "commentCount": "63"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL020aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-16T03:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #20",
+    "description": "Описание: Разбор AI-инструмента #20",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL020aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL020aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT24M36S"
+   },
+   "statistics": {
+    "viewCount": "25311",
+    "likeCount": "1012",
+    "commentCount": "84"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL021aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-13T15:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #21",
+    "description": "0:00 Вступление\n1:30 Настройка\n5:10 Пример\n9:45 Итоги",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL021aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL021aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT20M31S"
+   },
+   "statistics": {
+    "viewCount": "11845",
+    "likeCount": "473",
+    "commentCount": "39"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL022aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-11T03:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #22",
+    "description": "Описание: Разбор AI-инструмента #22",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL022aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL022aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT17M9S"
+   },
+   "statistics": {
+    "viewCount": "17494",
+    "likeCount": "699",
+    "commentCount": "58"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgL023aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-08T15:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Разбор AI-инструмента #23",
+    "description": "Описание: Разбор AI-инструмента #23",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgL023aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgL023aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT18M34S"
+   },
+   "statistics": {
+    "viewCount": "15654",
+    "likeCount": "626",
+    "commentCount": "52"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgLONGOUT01",
+   "snippet": {
+    "publishedAt": "2026-09-26T06:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "7 нейросетей, которые заменили мне ассистента (честный тест)",
+    "description": "0:00 Вступление\n1:30 Настройка\n5:10 Пример\n9:45 Итоги\nСсылки в описании",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgLONGOUT01/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgLONGOUT01/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT14M5S"
+   },
+   "statistics": {
+    "viewCount": "260000",
+    "likeCount": "10400",
+    "commentCount": "866"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgS000aaaaa",
+   "snippet": {
+    "publishedAt": "2026-10-04T06:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Быстрый AI-трюк #0",
+    "description": "Описание: Быстрый AI-трюк #0",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgS000aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgS000aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT57S"
+   },
+   "statistics": {
+    "viewCount": "3041",
+    "likeCount": "121",
+    "commentCount": "10"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgS001aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-29T06:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Быстрый AI-трюк #1",
+    "description": "Описание: Быстрый AI-трюк #1",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgS001aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgS001aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT28S"
+   },
+   "statistics": {
+    "viewCount": "6027",
+    "likeCount": "241",
+    "commentCount": "20"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgS002aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-24T06:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Быстрый AI-трюк #2",
+    "description": "Описание: Быстрый AI-трюк #2",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgS002aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgS002aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT23S"
+   },
+   "statistics": {
+    "viewCount": "7203",
+    "likeCount": "288",
+    "commentCount": "24"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgS003aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-19T06:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Быстрый AI-трюк #3",
+    "description": "Описание: Быстрый AI-трюк #3",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgS003aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgS003aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT30S"
+   },
+   "statistics": {
+    "viewCount": "7452",
+    "likeCount": "298",
+    "commentCount": "24"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgS004aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-14T06:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Быстрый AI-трюк #4",
+    "description": "Описание: Быстрый AI-трюк #4",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgS004aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgS004aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT24S"
+   },
+   "statistics": {
+    "viewCount": "5309",
+    "likeCount": "212",
+    "commentCount": "17"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgS005aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-09T06:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Быстрый AI-трюк #5",
+    "description": "Описание: Быстрый AI-трюк #5",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgS005aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgS005aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT49S"
+   },
+   "statistics": {
+    "viewCount": "9239",
+    "likeCount": "369",
+    "commentCount": "30"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgS006aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-04T06:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Быстрый AI-трюк #6",
+    "description": "Описание: Быстрый AI-трюк #6",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgS006aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgS006aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT20S"
+   },
+   "statistics": {
+    "viewCount": "6547",
+    "likeCount": "261",
+    "commentCount": "21"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgS007aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-30T06:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Быстрый AI-трюк #7",
+    "description": "Описание: Быстрый AI-трюк #7",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgS007aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgS007aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT54S"
+   },
+   "statistics": {
+    "viewCount": "9551",
+    "likeCount": "382",
+    "commentCount": "31"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgS008aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-25T06:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Быстрый AI-трюк #8",
+    "description": "Описание: Быстрый AI-трюк #8",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgS008aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgS008aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT41S"
+   },
+   "statistics": {
+    "viewCount": "4468",
+    "likeCount": "178",
+    "commentCount": "14"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgS009aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-20T06:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Быстрый AI-трюк #9",
+    "description": "Описание: Быстрый AI-трюк #9",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgS009aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgS009aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT49S"
+   },
+   "statistics": {
+    "viewCount": "7538",
+    "likeCount": "301",
+    "commentCount": "25"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "tgSHORTOUT1",
+   "snippet": {
+    "publishedAt": "2026-09-28T06:00:00Z",
+    "channelId": "UCtechguru00000000000000",
+    "title": "Этот промпт экономит час в день",
+    "description": "Описание: Этот промпт экономит час в день",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/tgSHORTOUT1/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/tgSHORTOUT1/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT41S"
+   },
+   "statistics": {
+    "viewCount": "90000",
+    "likeCount": "3600",
+    "commentCount": "300"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "sbL000aaaaa",
+   "snippet": {
+    "publishedAt": "2026-10-04T06:00:00Z",
+    "channelId": "UCsmallbuilder0000000000",
+    "title": "Собираю продукт с AI, день 0",
+    "description": "Описание: Собираю продукт с AI, день 0",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/sbL000aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/sbL000aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT9M"
+   },
+   "statistics": {
+    "viewCount": "1007",
+    "likeCount": "40",
+    "commentCount": "3"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "sbL001aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-30T06:00:00Z",
+    "channelId": "UCsmallbuilder0000000000",
+    "title": "Собираю продукт с AI, день 1",
+    "description": "Описание: Собираю продукт с AI, день 1",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/sbL001aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/sbL001aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT18M"
+   },
+   "statistics": {
+    "viewCount": "1366",
+    "likeCount": "54",
+    "commentCount": "4"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "sbL002aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-26T06:00:00Z",
+    "channelId": "UCsmallbuilder0000000000",
+    "title": "Собираю продукт с AI, день 2",
+    "description": "Описание: Собираю продукт с AI, день 2",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/sbL002aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/sbL002aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT13M"
+   },
+   "statistics": {
+    "viewCount": "1915",
+    "likeCount": "76",
+    "commentCount": "6"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "sbL003aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-22T06:00:00Z",
+    "channelId": "UCsmallbuilder0000000000",
+    "title": "Собираю продукт с AI, день 3",
+    "description": "Описание: Собираю продукт с AI, день 3",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/sbL003aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/sbL003aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT20M"
+   },
+   "statistics": {
+    "viewCount": "1629",
+    "likeCount": "65",
+    "commentCount": "5"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "sbL004aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-18T06:00:00Z",
+    "channelId": "UCsmallbuilder0000000000",
+    "title": "Собираю продукт с AI, день 4",
+    "description": "Описание: Собираю продукт с AI, день 4",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/sbL004aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/sbL004aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT9M"
+   },
+   "statistics": {
+    "viewCount": "1842",
+    "likeCount": "73",
+    "commentCount": "6"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "sbL005aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-14T06:00:00Z",
+    "channelId": "UCsmallbuilder0000000000",
+    "title": "Собираю продукт с AI, день 5",
+    "description": "Описание: Собираю продукт с AI, день 5",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/sbL005aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/sbL005aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT8M"
+   },
+   "statistics": {
+    "viewCount": "1160",
+    "likeCount": "46",
+    "commentCount": "3"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "sbL006aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-10T06:00:00Z",
+    "channelId": "UCsmallbuilder0000000000",
+    "title": "Собираю продукт с AI, день 6",
+    "description": "Описание: Собираю продукт с AI, день 6",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/sbL006aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/sbL006aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT9M"
+   },
+   "statistics": {
+    "viewCount": "1061",
+    "likeCount": "42",
+    "commentCount": "3"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "sbL007aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-06T06:00:00Z",
+    "channelId": "UCsmallbuilder0000000000",
+    "title": "Собираю продукт с AI, день 7",
+    "description": "Описание: Собираю продукт с AI, день 7",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/sbL007aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/sbL007aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT9M"
+   },
+   "statistics": {
+    "viewCount": "935",
+    "likeCount": "37",
+    "commentCount": "3"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "sbL008aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-02T06:00:00Z",
+    "channelId": "UCsmallbuilder0000000000",
+    "title": "Собираю продукт с AI, день 8",
+    "description": "Описание: Собираю продукт с AI, день 8",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/sbL008aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/sbL008aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT16M"
+   },
+   "statistics": {
+    "viewCount": "1106",
+    "likeCount": "44",
+    "commentCount": "3"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "sbL009aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-29T06:00:00Z",
+    "channelId": "UCsmallbuilder0000000000",
+    "title": "Собираю продукт с AI, день 9",
+    "description": "Описание: Собираю продукт с AI, день 9",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/sbL009aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/sbL009aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT17M"
+   },
+   "statistics": {
+    "viewCount": "1438",
+    "likeCount": "57",
+    "commentCount": "4"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "sbL010aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-25T06:00:00Z",
+    "channelId": "UCsmallbuilder0000000000",
+    "title": "Собираю продукт с AI, день 10",
+    "description": "Описание: Собираю продукт с AI, день 10",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/sbL010aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/sbL010aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT16M"
+   },
+   "statistics": {
+    "viewCount": "2135",
+    "likeCount": "85",
+    "commentCount": "7"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "sbL011aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-21T06:00:00Z",
+    "channelId": "UCsmallbuilder0000000000",
+    "title": "Собираю продукт с AI, день 11",
+    "description": "Описание: Собираю продукт с AI, день 11",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/sbL011aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/sbL011aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT19M"
+   },
+   "statistics": {
+    "viewCount": "1681",
+    "likeCount": "67",
+    "commentCount": "5"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "sbL012aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-17T06:00:00Z",
+    "channelId": "UCsmallbuilder0000000000",
+    "title": "Собираю продукт с AI, день 12",
+    "description": "Описание: Собираю продукт с AI, день 12",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/sbL012aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/sbL012aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT16M"
+   },
+   "statistics": {
+    "viewCount": "1459",
+    "likeCount": "58",
+    "commentCount": "4"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "sbL013aaaaa",
+   "snippet": {
+    "publishedAt": "2026-08-13T06:00:00Z",
+    "channelId": "UCsmallbuilder0000000000",
+    "title": "Собираю продукт с AI, день 13",
+    "description": "Описание: Собираю продукт с AI, день 13",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/sbL013aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/sbL013aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT9M"
+   },
+   "statistics": {
+    "viewCount": "1267",
+    "likeCount": "50",
+    "commentCount": "4"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "sbBREAKOUT1",
+   "snippet": {
+    "publishedAt": "2026-09-24T06:00:00Z",
+    "channelId": "UCsmallbuilder0000000000",
+    "title": "Как я сделал SaaS за выходные без программиста",
+    "description": "Описание: Как я сделал SaaS за выходные без программиста",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/sbBREAKOUT1/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/sbBREAKOUT1/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT18M20S"
+   },
+   "statistics": {
+    "viewCount": "45000",
+    "likeCount": "1800",
+    "commentCount": "150"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "apL000aaaaa",
+   "snippet": {
+    "publishedAt": "2026-10-03T06:00:00Z",
+    "channelId": "UCcandidate1000000000000",
+    "title": "AI на практике 0",
+    "description": "Описание: AI на практике 0",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/apL000aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/apL000aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT11M"
+   },
+   "statistics": {
+    "viewCount": "4334",
+    "likeCount": "173",
+    "commentCount": "14"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "apL001aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-27T06:00:00Z",
+    "channelId": "UCcandidate1000000000000",
+    "title": "AI на практике 1",
+    "description": "Описание: AI на практике 1",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/apL001aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/apL001aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT11M"
+   },
+   "statistics": {
+    "viewCount": "4858",
+    "likeCount": "194",
+    "commentCount": "16"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "apL002aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-21T06:00:00Z",
+    "channelId": "UCcandidate1000000000000",
+    "title": "AI на практике 2",
+    "description": "Описание: AI на практике 2",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/apL002aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/apL002aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT11M"
+   },
+   "statistics": {
+    "viewCount": "5697",
+    "likeCount": "227",
+    "commentCount": "18"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "apL003aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-15T06:00:00Z",
+    "channelId": "UCcandidate1000000000000",
+    "title": "AI на практике 3",
+    "description": "Описание: AI на практике 3",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/apL003aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/apL003aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT11M"
+   },
+   "statistics": {
+    "viewCount": "6946",
+    "likeCount": "277",
+    "commentCount": "23"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "apL004aaaaa",
+   "snippet": {
+    "publishedAt": "2026-09-09T06:00:00Z",
+    "channelId": "UCcandidate1000000000000",
+    "title": "AI на практике 4",
+    "description": "Описание: AI на практике 4",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/apL004aaaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/apL004aaaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT11M"
+   },
+   "statistics": {
+    "viewCount": "12365",
+    "likeCount": "494",
+    "commentCount": "41"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "bigV000aaaa",
+   "snippet": {
+    "publishedAt": "2026-10-01T06:00:00Z",
+    "channelId": "UCbigmedia00000000000000",
+    "title": "Видео bigmed 0",
+    "description": "Описание: Видео bigmed 0",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/bigV000aaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/bigV000aaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT9M"
+   },
+   "statistics": {
+    "viewCount": "500000",
+    "likeCount": "20000",
+    "commentCount": "1666"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "bigV001aaaa",
+   "snippet": {
+    "publishedAt": "2026-09-30T06:00:00Z",
+    "channelId": "UCbigmedia00000000000000",
+    "title": "Видео bigmed 1",
+    "description": "Описание: Видео bigmed 1",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/bigV001aaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/bigV001aaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT9M"
+   },
+   "statistics": {
+    "viewCount": "500000",
+    "likeCount": "20000",
+    "commentCount": "1666"
+   }
+  },
+  {
+   "kind": "youtube#video",
+   "id": "hidV000aaaa",
+   "snippet": {
+    "publishedAt": "2026-10-01T06:00:00Z",
+    "channelId": "UChiddensubs000000000000",
+    "title": "Видео hidden 0",
+    "description": "Описание: Видео hidden 0",
+    "tags": [
+     "ai",
+     "нейросети"
+    ],
+    "thumbnails": {
+     "default": {
+      "url": "https://i.ytimg.com/vi/hidV000aaaa/default.jpg"
+     },
+     "high": {
+      "url": "https://i.ytimg.com/vi/hidV000aaaa/hqdefault.jpg"
+     }
+    }
+   },
+   "contentDetails": {
+    "duration": "PT9M"
+   },
+   "statistics": {
+    "viewCount": "500000",
+    "likeCount": "20000",
+    "commentCount": "1666"
+   }
+  }
+ ]
+}

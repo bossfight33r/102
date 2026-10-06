@@ -1,0 +1,76 @@
+# Поведение радара. Все поля и значения по умолчанию — docs/niches.md (раздел settings.yaml).
+quota:
+  daily_budget: 10000        # дневная квота проекта Google Cloud
+  discovery_reserve: 2000    # резерв под discovery (search.list), остальные задачи его не трогают
+  safety_margin: 200         # дорогие вызовы не тратят последние N единиц
+  expensive_threshold: 50    # метод с такой стоимостью и выше считается дорогим
+  costs:
+    videos.list: 1
+    channels.list: 1
+    playlistItems.list: 1
+    commentThreads.list: 1
+    search.list: 100
+
+snapshots:
+  fresh_days: 14             # видео младше — часто
+  fresh_interval_hours: 6
+  mid_days: 60               # до 60 дней — раз в сутки, старше не собираем
+  mid_interval_hours: 24
+
+formats:
+  short_max_sec: 180         # <= 180 сек — short
+
+scoring:
+  baseline_videos: 30        # последние N видео того же формата
+  baseline_min_age_days: 7   # в базлайн только видео старше 7 дней
+  min_sample: 8              # меньше — baseline.reliable=false
+  min_log_mad: 0.15          # нижняя граница разброса (лог-шкала)
+  min_views: 1000            # абсолютный порог против шума маленьких каналов
+  weight_ratio: 1.0
+  weight_z: 0.5
+  weight_velocity: 0.7
+  unreliable_factor: 0.6     # множитель score при ненадёжном базлайне
+  score_threshold: 3.0       # выше — аутлайер
+  flag_ratio: 3.0
+  flag_z: 2.5
+  flag_velocity: 2.0
+  small_channel_subs: 10000
+  velocity_min_videos: 3
+  velocity_max_age_days: 14
+
+analysis:
+  score_threshold: 3.5       # анализируем только аутлайеры с score выше
+  max_per_tick: 5
+  comments_count: 20
+  max_cost_usd_per_day: 1.0
+  use_thumbnails: true
+
+llm:
+  max_tokens: 4000
+  input_usd_per_mtok: 4.0    # цены модели из ANTHROPIC_MODEL, для учёта стоимости
+  output_usd_per_mtok: 20.0
+  effort: medium
+  refusal_fallback: true
+
+discovery:
+  auto_approve: false        # true — кандидаты сразу в watchlist
+  published_within_days: 30
+  max_results: 50
+
+watchlist:
+  interval_minutes: 60
+  channel_refresh_hours: 24
+
+digest:
+  timezone: Europe/Moscow
+  send_hour: 8
+  top_n_per_niche: 5
+  max_items: 15
+  lookback_hours: 48
+  use_llm_intro: false
+
+trends:
+  days: 7
+  weekly_weekday: 0          # 0 = понедельник
+  weekly_hour: 10
+  use_llm: false
