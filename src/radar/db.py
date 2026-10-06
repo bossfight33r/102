@@ -28,7 +28,7 @@ from radar.schemas import (
 )
 from radar.timeutil import iso, parse_dt
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS niches (
@@ -152,6 +152,14 @@ CREATE TABLE IF NOT EXISTS alerts (
 """
 
 
+# v2: видео, которые videos.list перестал возвращать (удалены/приватны), не опрашиваются.
+_MIGRATIONS: list[tuple[int, str]] = [
+    (1, _SCHEMA),
+    (2, "ALTER TABLE videos ADD COLUMN gone_at TEXT;"),
+]
+assert _MIGRATIONS[-1][0] == SCHEMA_VERSION
+
+
 def _j(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True)
 
@@ -174,10 +182,13 @@ class Database:
         self._migrate()
 
     def _migrate(self) -> None:
+        """Последовательные миграции по PRAGMA user_version."""
         version = self.conn.execute("PRAGMA user_version").fetchone()[0]
-        if version < SCHEMA_VERSION:
-            self.conn.executescript(_SCHEMA)
-            self.conn.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
+        for target, script in _MIGRATIONS:
+            if version < target:
+                self.conn.executescript(script)
+                self.conn.execute(f"PRAGMA user_version = {target}")
+                version = target
 
     @property
     def schema_version(self) -> int:
@@ -394,6 +405,12 @@ class Database:
             self._row_to_video(r) for r in self._all(sql + " ORDER BY published_at DESC", params)
         ]
 
+    def mark_videos_gone(self, video_ids: Iterable[str], at: datetime) -> None:
+        self.conn.executemany(
+            "UPDATE videos SET gone_at=? WHERE id=? AND gone_at IS NULL",
+            [(iso(at), v) for v in video_ids],
+        )
+
     def videos_for_snapshots(
         self, published_after: datetime
     ) -> list[tuple[str, datetime, datetime | None]]:
@@ -402,7 +419,7 @@ class Database:
             "SELECT v.id, v.published_at, MAX(s.collected_at) AS last_at FROM videos v "
             "JOIN channels c ON c.id = v.channel_id AND c.status = 'watching' "
             "LEFT JOIN video_snapshots s ON s.video_id = v.id "
-            "WHERE v.published_at >= ? GROUP BY v.id ORDER BY v.published_at DESC",
+            "WHERE v.published_at >= ? AND v.gone_at IS NULL GROUP BY v.id ORDER BY v.published_at DESC",
             (iso(published_after),),
         )
         return [(r["id"], parse_dt(r["published_at"]), _opt_dt(r["last_at"])) for r in rows]

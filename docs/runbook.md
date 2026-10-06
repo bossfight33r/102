@@ -45,7 +45,7 @@ tail -f data/logs/tick.err.log                                    # логи (st
 plist запускает `zsh -lc`, чтобы подхватить PATH с `uv` (Homebrew). Если `uv` не находится — укажите полный путь (`which uv`).
 
 ## Что делает tick
-Задачи по порядку, каждая — только если наступил срок: `seed_channels` → `watchlist` (интервал `watchlist.interval_minutes`) → `snapshots` → `discovery` (пока не исчерпан `discovery_per_day`) → `score` (если появились снимки) → `analyze` (есть неразобранные аутлайеры) → `digest` (после `digest.send_hour` по `digest.timezone`, раз в день) → `trends_weekly` → `alerts`. Ошибка одной задачи не останавливает остальные (`task_runs.status = error`). Параллельный запуск блокируется `data/tick.lock`. Время последнего запуска — `kv.last_tick_at`.
+Задачи по порядку, каждая — только если наступил срок: `seed_channels` → `watchlist` (интервал `watchlist.interval_minutes`) → `snapshots` → `discovery` (пока не исчерпан `discovery_per_day`) → `score` (если появились снимки) → `analyze` (есть неразобранные аутлайеры) → `digest` (после `digest.send_hour` по `digest.timezone`, раз в день) → `trends_weekly` → `alerts`. Ошибка одной задачи не останавливает остальные (`task_runs.status = error`) и приходит алертом в бот (раз в сутки на задачу). Дайджест ждёт анализа неразобранных аутлайеров до `digest.wait_analysis_hours` после `send_hour`. Параллельный запуск блокируется `data/tick.lock`. Время последнего запуска — `kv.last_tick_at`.
 
 ## Частые ошибки
 | Симптом | Причина / решение |

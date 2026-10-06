@@ -111,7 +111,9 @@ def poll_watchlist(
             deferred_msg = str(e)
             break
         except YouTubeAPIError as e:
+            # Плейлист пуст/удалён: помечаем опрошенным, иначе каждый tick тратит квоту впустую.
             log.warning("uploads_failed", channel=ch.id, reason=e.reason)
+            db.set_channel_polled(ch.id, now)
             continue
         known = db.existing_video_ids(v for v, _ in uploads)
         new_ids += [v for v, _ in uploads if v not in known]

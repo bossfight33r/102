@@ -67,6 +67,7 @@ digest:
   top_n_per_niche: 5
   max_items: 15
   lookback_hours: 48
+  wait_analysis_hours: 2     # ждать анализа неразобранных аутлайеров не дольше N часов после send_hour
   use_llm_intro: false
 
 trends:

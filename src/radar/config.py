@@ -142,6 +142,7 @@ class DigestConfig(_Cfg):
     top_n_per_niche: int = 5
     max_items: int = 15
     lookback_hours: int = 48
+    wait_analysis_hours: int = Field(default=2, ge=0, le=12)
     use_llm_intro: bool = False
 
 

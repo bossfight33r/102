@@ -63,6 +63,7 @@ avoid: [лицо в кадре, реакции]             # чего не де
 | digest.timezone / send_hour | Europe/Moscow / 8 | когда отправлять дайджест |
 | digest.top_n_per_niche / max_items | 5 / 15 | размер дайджеста |
 | digest.lookback_hours | 48 | окно аутлайеров для дайджеста |
+| digest.wait_analysis_hours | 2 | сколько ждать анализа после send_hour, прежде чем отправить как есть |
 | digest.use_llm_intro | false | короткое вступление от LLM (prompts/digest.md) |
 | trends.days | 7 | окно трендов |
 | trends.weekly_weekday / weekly_hour | 0 / 10 | еженедельный отчёт (0 = пн, время по digest.timezone) |

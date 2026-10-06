@@ -116,9 +116,15 @@ def build_digest(db: Database, cfg: AppConfig, now: datetime, *, rebuild: bool =
     return digest
 
 
-def digest_due(db: Database, cfg: AppConfig, now: datetime) -> bool:
+def digest_due(
+    db: Database, cfg: AppConfig, now: datetime, *, analysis_pending: bool = False
+) -> bool:
+    """Пора отправлять: после send_hour и ещё не отправлен. Пока есть неразобранные аутлайеры,
+    ждём анализа, но не дольше digest.wait_analysis_hours."""
     local = ensure_utc(now).astimezone(ZoneInfo(cfg.digest.timezone))
     if local.hour < cfg.digest.send_hour:
+        return False
+    if analysis_pending and local.hour < cfg.digest.send_hour + cfg.digest.wait_analysis_hours:
         return False
     d = db.get_digest(local.date())
     return d is None or d.sent_at is None
@@ -163,7 +169,8 @@ def send_digest(
     """Собрать (если нужно) и отправить дайджест за локальную дату. Повторно не отправляет."""
     from radar.digest.render import render_digest
 
-    digest = build_digest(db, cfg, now)
+    # Неотправленный дайджест пересобирается: предпросмотр (/digest, radar digest) мог быть раньше анализа.
+    digest = build_digest(db, cfg, now, rebuild=True)
     if digest.sent_at:
         return TaskResult(
             name="digest", stats={"items": len(digest.items), "sent": 0}, message="уже отправлен"

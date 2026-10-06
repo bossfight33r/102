@@ -469,6 +469,12 @@ def doctor(
         + (f", пауза до {st['paused_until']}" if st["paused_until"] else ""),
     )
 
+    last_tick = a.db.get_kv("last_tick_at")
+    line(bool(last_tick) or None, f"Последний tick: {last_tick or 'ещё не было'}")
+    for name, at, status in a.db.list_task_runs():
+        if status != "ok":
+            line(None, f"Задача {name}: {status} ({at.isoformat()})")
+
     if a.has_llm():
         if online:
             try:

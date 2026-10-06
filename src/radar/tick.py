@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from radar.log import get_logger
+from radar.log import get_logger, redact_text
 from radar.schemas import OutMessage, TaskResult
 from radar.timeutil import iso
 
@@ -111,7 +111,14 @@ def _analyze(app: App, now: datetime) -> TaskResult:
 def _digest_due(app: App, now: datetime) -> bool:
     from radar.digest.build import digest_due
 
-    return digest_due(app.db, app.config, now)
+    analysis_pending = False
+    if (
+        app.has_llm()
+        and app.profile is not None
+        and app.db.list_outliers(min_score=app.config.analysis.score_threshold, limit=1)
+    ):
+        analysis_pending = bool(app.analyzer().pending(now))
+    return digest_due(app.db, app.config, now, analysis_pending=analysis_pending)
 
 
 def _digest(app: App, now: datetime) -> TaskResult:
@@ -194,6 +201,14 @@ def run_tick(app: App, now: datetime, tasks: list[Task] | None = None) -> list[T
             except Exception as e:
                 log.error("task_failed", task=task.name, error=f"{type(e).__name__}: {e}")
                 app.db.set_task_run(task.name, now, "error")
+                if task.name != "alerts":  # алерт об ошибке — не чаще раза в сутки на задачу
+                    app.db.add_alert(
+                        redact_text(f"❗ tick: задача {task.name} упала: {type(e).__name__}: {e}")[
+                            :1000
+                        ],
+                        now,
+                        key=f"task_error:{task.name}:{now.date().isoformat()}",
+                    )
                 results.append(
                     TaskResult(name=task.name, message=f"ошибка: {type(e).__name__}: {e}")
                 )

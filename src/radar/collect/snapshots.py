@@ -32,7 +32,7 @@ def due_video_ids(db: Database, cfg: AppConfig, now: datetime) -> list[str]:
 def collect_snapshots(yt: YouTube, db: Database, cfg: AppConfig, now: datetime) -> TaskResult:
     """Новые снимки append-only. Каждый батч сохраняется сразу — откладывание не теряет прогресс."""
     ids = due_video_ids(db, cfg, now)
-    saved = 0
+    saved = gone_total = 0
     for batch in chunked(ids, BATCH_SIZE):
         try:
             items = yt.get_videos(batch, purpose="snapshots", now=now)
@@ -43,7 +43,12 @@ def collect_snapshots(yt: YouTube, db: Database, cfg: AppConfig, now: datetime) 
                 deferred=True,
                 message=str(e),
             )
+        returned = {v.id for v, _ in items}
+        gone = [vid for vid in batch if vid not in returned]
         with db.tx():
+            if gone:
+                db.mark_videos_gone(gone, now)
+                gone_total += len(gone)
             for video, _ in items:
                 db.upsert_video(video, now)
             saved += db.add_snapshots(
@@ -56,4 +61,4 @@ def collect_snapshots(yt: YouTube, db: Database, cfg: AppConfig, now: datetime) 
                 )
                 for _, st in items
             )
-    return TaskResult(name="snapshots", stats={"due": len(ids), "saved": saved})
+    return TaskResult(name="snapshots", stats={"due": len(ids), "saved": saved, "gone": gone_total})

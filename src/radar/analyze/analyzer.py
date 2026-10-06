@@ -20,6 +20,7 @@ from radar.schemas import (
     Analysis,
     AnalysisDraft,
     ChannelProfile,
+    ChannelStatus,
     ImageInput,
     TaskResult,
     Video,
@@ -211,9 +212,12 @@ class Analyzer:
     def pending(self, now: datetime) -> list[str]:
         """Аутлайеры выше порога анализа за последние 7 дней без актуального анализа."""
         out = []
+        watching = {c.id for c in self.db.list_channels(status=ChannelStatus.WATCHING)}
         for o in self.db.list_outliers(
             since=now - PENDING_WINDOW, min_score=self.cfg.analysis.score_threshold
         ):
+            if o.channel_id not in watching:  # скрытые каналы не тратят LLM
+                continue
             v = self.db.get_video(o.video_id)
             if v and self.cached(v) is None and not self._failed_recently(v.id, now):
                 out.append(o.video_id)
