@@ -46,3 +46,16 @@ def test_quota_cmd(cli_app):
     r = runner.invoke(app, ["quota"])
     assert r.exit_code == 0
     assert "1/10000" in r.output
+
+
+def test_poll_score_outliers(cli_app):
+    runner.invoke(app, ["channel", "add", "@smallbuilder"])
+    r = runner.invoke(app, ["poll"])
+    assert r.exit_code == 0, r.output
+    assert "new_videos=57" in r.output
+    r = runner.invoke(app, ["score"])
+    assert "outliers=3" in r.output, r.output
+    r = runner.invoke(app, ["outliers", "--format", "long"])
+    assert "sbBREAKOUT1" in r.output and "tgLONGOUT01" in r.output and "tgSHORTOUT1" not in r.output
+    r = runner.invoke(app, ["discover"])
+    assert "searches=2" in r.output

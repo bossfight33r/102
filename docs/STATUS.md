@@ -7,8 +7,10 @@
 
 - **Фаза 1 — Сбор**: watchlist, снимки, discovery, кандидаты, QuotaPlanner в задачах; `radar poll`, `radar discover`.
 
+- **Фаза 2 — Скоринг**: базлайны, ratio, z, velocity, score, reason_flags, раздельные форматы; `radar score`, `radar outliers`.
+
 ## Не готово
-- Фазы 2–5.
+- Фазы 3–5.
 
 ## Блокеры
 - нет
@@ -19,4 +21,4 @@ make setup && uv run radar doctor
 ```
 
 ## Следующий шаг
-Фаза 2 — скоринг: базлайны, ratio, z, velocity, score, reason_flags.
+Фаза 3 — анализ: LLM с превью, комментарии, Analysis, кеш, стоимость.

@@ -9,7 +9,7 @@ from typing import Annotated
 import typer
 
 from radar.app import App, ConfigError, current_time
-from radar.schemas import ChannelStatus, FormatPref, Niche, TaskResult
+from radar.schemas import ChannelStatus, FormatPref, Niche, TaskResult, VideoFormat
 
 app = typer.Typer(
     help="Outlier Radar: аутлайеры YouTube → идеи для моего канала.", no_args_is_help=True
@@ -202,6 +202,50 @@ def poll(
     _print_result(add_seed_channels(a.youtube, a.db, a.db.list_niches(enabled_only=True), now))
     _print_result(poll_watchlist(a.youtube, a.db, a.config, now, force=force))
     _print_result(collect_snapshots(a.youtube, a.db, a.config, now))
+
+
+# --- скоринг --------------------------------------------------------------------
+
+
+@app.command()
+def score() -> None:
+    """Пересчитать базлайны и найти аутлайеры."""
+    from radar.score.outliers import score_all
+
+    a = get_app()
+    _print_result(score_all(a.db, a.config, current_time()))
+
+
+@app.command()
+def outliers(
+    niche: Annotated[str | None, typer.Option("--niche", help="id ниши")] = None,
+    fmt: Annotated[VideoFormat | None, typer.Option("--format", help="short | long")] = None,
+    days: Annotated[int, typer.Option("--days", help="Обнаруженные за N дней")] = 7,
+    limit: int = 30,
+) -> None:
+    """Аутлайеры по убыванию score."""
+    from datetime import timedelta
+
+    a = get_app()
+    now = current_time()
+    rows = a.db.list_outliers(since=now - timedelta(days=days), fmt=fmt)
+    shown = 0
+    for o in rows:
+        ch = a.db.get_channel(o.channel_id)
+        if niche and (ch is None or niche not in ch.niche_ids):
+            continue
+        v = a.db.get_video(o.video_id)
+        vel = f" vel×{o.velocity_ratio:.1f}" if o.velocity_ratio else ""
+        typer.echo(
+            f"{o.score:6.2f}  ×{o.ratio:<6.1f} z={o.z_score:<5.1f}{vel}  {o.views:>9,} просм. "
+            f"[{o.format.value}] {v.title if v else o.video_id} — {ch.title if ch else o.channel_id}\n"
+            f"        https://youtu.be/{o.video_id}  {', '.join(o.reason_flags)}"
+        )
+        shown += 1
+        if shown >= limit:
+            break
+    if not shown:
+        typer.echo("Аутлайеров нет (radar poll → radar score).")
 
 
 # --- квота и диагностика --------------------------------------------------------

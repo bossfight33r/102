@@ -1,5 +1,12 @@
 # Changelog
 
+## [Фаза 2] Скоринг
+- Базлайн канала по формату: медиана и MAD лог-просмотров последних N зрелых видео, leave-one-out, reliable при малой выборке.
+- ratio, robust z (лог-шкала), velocity (по истории снимков или вогнутый prior), итоговый score с весами из конфига, порог min_views.
+- reason_flags: high_ratio, high_z, fast_start, early_signal, views_exceed_subs, small_channel_breakout, low_confidence, velocity_fallback.
+- CLI: `radar score`, `radar outliers [--niche] [--format] [--days]`.
+- docs/scoring.md с формулами и разобранными примерами.
+
 ## [Фаза 1] Сбор
 - Watchlist через uploads-плейлисты (`collect/watchlist.py`): первая страница (до 50 видео) даёт свежие ролики и историю для базлайна; seed-каналы ниш резолвятся один раз; подписчики обновляются раз в сутки.
 - Снимки (`collect/snapshots.py`): videos.list батчами по 50; <14 дней — каждые 6 ч, до 60 дней — раз в сутки, старше — не собираем; прогресс сохраняется побатчево.
