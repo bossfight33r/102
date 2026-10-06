@@ -20,7 +20,9 @@
 - Фикстуры YouTube: `tests/fixtures/*.json`, генератор `tests/fixtures/generate_fixtures.py`.
 
 ## Карта
-- `app.py` — сборка зависимостей (App.build с подменой фейками).
-- `youtube/` — протокол клиента, HTTP-клиент, фейк, квота. `llm/` — провайдер, фейк.
-- `collect/` → `score/` → `analyze/` → `digest/` → `bot/`, `export/`; `tick.py` — планировщик задач.
+- `app.py` — сборка зависимостей (App.build с подменой фейками); `cli.py` — команды `radar`.
+- `youtube/` — протокол клиента, HTTP-клиент (+ скачивание превью), фейк, квота и прогноз квоты. `llm/` — провайдер (обычный + Batch API), фейки.
+- `collect/` (watchlist, snapshots, discovery, adhoc — разбор любого ролика, mine — мой канал) → `score/` → `analyze/` (синхронно или пакетами) → `digest/` (сборка, рендер, архив) → `bot/` (handlers, notifier, keyboards, main + watchdog), `export/` (темы, CSV, YAML).
+- `tick.py` — планировщик задач; `trends.py` — тренды, вопросы зрителей, рекомендации по порогам; `delivery.py` — лимит повторов доставки; `backup.py` — бэкап БД.
+- БД: миграции — только добавлением версии в `db._MIGRATIONS`; соединение под RLock (потоки бота).
 - ADR — `docs/decisions/`. Неоднозначность решается простейшим вариантом + короткий ADR.

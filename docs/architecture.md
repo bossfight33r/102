@@ -42,5 +42,8 @@ flowchart LR
 - Контракты — `schemas.py`; конфиг — `config.py`; БД — `db.py` (единственный модуль с SQL).
 - Идемпотентность: снимки по сроку, `task_runs`, upsert аутлайеров, кеш анализа, дайджест один на дату.
 
-## Таблицы
-`niches`, `channels`, `videos`, `video_snapshots` (append-only), `channel_baselines`, `outliers`, `analyses`, `llm_usage`, `quota_ledger`, `digests`, `feedback`, `topic_suggestions`, `task_runs`, `kv`, `alerts`.
+## Задачи tick (по порядку)
+`seed_channels` → `watchlist` → `snapshots` → `discovery` (+ алерт о кандидатах) → `score` → `analyze` (синхронно или Batch API) → `digest` (+ архив Markdown) → `trends_weekly` (+ вопросы зрителей, рекомендации) → `backup` → `alerts`. Ошибка задачи → алерт; недоставка → повтор (≤ 4). Процесс бота отдельно: команды, кнопки, watchdog «tick встал».
+
+## Таблицы (схема v3)
+`niches`, `channels`, `videos` (+`gone_at`), `video_snapshots` (append-only), `channel_baselines`, `outliers`, `analyses`, `llm_usage`, `llm_batches`, `quota_ledger`, `digests`, `feedback`, `topic_suggestions`, `task_runs`, `kv`, `alerts`.
