@@ -194,7 +194,7 @@ def send_digest(
         if (llm and cfg.digest.use_llm_intro and digest.items)
         else None
     )
-    delivered = notifier.send(render_digest(digest, intro))
+    delivered = notifier.send(render_digest(digest, intro, with_analysis=cfg.analysis.enabled))
     # Telegram недоступен: не помечаем отправленным, повторим на следующем tick (не бесконечно).
     if delivered == 0 and not give_up_delivery(db, f"digest:{digest.date.isoformat()}"):
         return TaskResult(

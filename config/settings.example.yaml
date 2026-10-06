@@ -39,6 +39,7 @@ scoring:
   velocity_max_age_days: 14
 
 analysis:
+  enabled: true              # false — без LLM вообще: дайджест только с цифрами, $0
   score_threshold: 3.5       # анализируем только аутлайеры с score выше
   max_per_tick: 5
   comments_count: 20
@@ -53,9 +54,9 @@ llm:
   max_tokens: 16000         # для анализа; мышление модели тоже тратит этот лимит
   light_effort: low          # вступление дайджеста, резюме трендов
   light_max_tokens: 4000
-  input_usd_per_mtok: 4.0    # цены модели из ANTHROPIC_MODEL, для учёта стоимости
-  output_usd_per_mtok: 20.0
-  effort: medium
+  input_usd_per_mtok: null   # null — встроенные цены модели из ANTHROPIC_MODEL; число — переопределить
+  output_usd_per_mtok: null
+  effort: medium             # для Sonnet/Opus; Haiku 4.5 параметр не принимает — не отправляется
   refusal_fallback: true     # не действует в Batch API
   batch_discount: 0.5
 

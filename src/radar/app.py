@@ -106,6 +106,8 @@ class App:
         return self._llm
 
     def has_llm(self) -> bool:
+        if not self.config.analysis.enabled:
+            return False
         if self._llm is not None or self.settings.radar_fake:
             return True
         key = self.settings.anthropic_api_key

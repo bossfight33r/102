@@ -18,19 +18,47 @@ log = get_logger(__name__)
 FALLBACK_BETA = "server-side-fallback-2026-07-01"
 
 
+class ModelProfile:
+    """Цены ($/MTok) и возможности модели. Неизвестная модель — консервативно по ценам Opus."""
+
+    def __init__(self, input_usd: float, output_usd: float, effort: bool, fallback: bool) -> None:
+        self.input_usd = input_usd
+        self.output_usd = output_usd
+        self.effort = effort  # принимает output_config.effort (Haiku 4.5 — нет)
+        self.fallback = fallback  # серверный fallback при отказе
+
+
+MODEL_PROFILES: dict[str, ModelProfile] = {
+    "claude-haiku-4-5": ModelProfile(1.0, 5.0, effort=False, fallback=False),
+    "claude-sonnet-5-5": ModelProfile(2.0, 10.0, effort=True, fallback=True),
+    "claude-sonnet-5": ModelProfile(2.0, 10.0, effort=True, fallback=False),
+    "claude-opus-5-5": ModelProfile(4.0, 20.0, effort=True, fallback=True),
+    "claude-opus-5": ModelProfile(5.0, 25.0, effort=True, fallback=True),
+}
+DEFAULT_PROFILE = ModelProfile(4.0, 20.0, effort=True, fallback=False)
+
+
+def model_profile(model: str) -> ModelProfile:
+    """Профиль по id модели (точное совпадение или самый длинный префикс)."""
+    if model in MODEL_PROFILES:
+        return MODEL_PROFILES[model]
+    matches = [k for k in MODEL_PROFILES if model.startswith(k)]
+    return MODEL_PROFILES[max(matches, key=len)] if matches else DEFAULT_PROFILE
+
+
 class AnthropicLLM:
     def __init__(self, api_key: str, model: str, cfg: LLMConfig, client: Any | None = None) -> None:
         if not api_key and client is None:
             raise ValueError("ANTHROPIC_API_KEY не задан")
         self.model = model
         self.cfg = cfg
+        self.profile = model_profile(model)
         self._client = client or anthropic.Anthropic(api_key=api_key, max_retries=3, timeout=120.0)
 
     def cost(self, input_tokens: int, output_tokens: int) -> float:
-        return (
-            input_tokens * self.cfg.input_usd_per_mtok
-            + output_tokens * self.cfg.output_usd_per_mtok
-        ) / 1_000_000
+        in_price = self.cfg.input_usd_per_mtok or self.profile.input_usd
+        out_price = self.cfg.output_usd_per_mtok or self.profile.output_usd
+        return (input_tokens * in_price + output_tokens * out_price) / 1_000_000
 
     def _params(
         self,
@@ -58,7 +86,7 @@ class AnthropicLLM:
             "system": system,
             "messages": [{"role": "user", "content": content}],
         }
-        if effort or self.cfg.effort:
+        if self.profile.effort and (effort or self.cfg.effort):
             params["output_config"] = {"effort": effort or self.cfg.effort}
         return params
 
@@ -98,7 +126,7 @@ class AnthropicLLM:
     ) -> LLMResponse:
         kwargs = self._params(system, prompt, images, max_tokens, effort)
         try:
-            if self.cfg.refusal_fallback:
+            if self.cfg.refusal_fallback and self.profile.fallback:
                 resp = self._client.beta.messages.create(
                     betas=[FALLBACK_BETA], fallbacks="default", **kwargs
                 )

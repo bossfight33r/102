@@ -318,7 +318,7 @@ def digest(
             fail(str(e))
         return
     d = build_digest(a.db, a.config, now, rebuild=rebuild)
-    for m in render_digest(d):
+    for m in render_digest(d, with_analysis=a.config.analysis.enabled):
         typer.echo(plain(m.text))
         typer.echo("")
     typer.echo(

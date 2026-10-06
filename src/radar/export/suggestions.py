@@ -40,7 +40,7 @@ def suggestion_from_analysis(
 ) -> TopicSuggestion | None:
     analysis = db.get_analysis(video_id)
     if analysis is None:
-        return None
+        return _suggestion_without_analysis(db, video_id, profile)
     idea = analysis.idea_for_my_channel
     w = analysis.why_it_worked
     outlier = db.get_outlier(video_id)
@@ -55,6 +55,23 @@ def suggestion_from_analysis(
         source_video_ids=[video_id],
         audience_level=profile.audience_level if profile else "",
         key_points=key_points,
+    )
+
+
+def _suggestion_without_analysis(
+    db: Database, video_id: str, profile: ChannelProfile | None
+) -> TopicSuggestion | None:
+    """Режим без LLM: в темы попадает сам ролик-образец с цифрами — идею формулирую сам."""
+    video, outlier = db.get_video(video_id), db.get_outlier(video_id)
+    if video is None or outlier is None:
+        return None
+    return TopicSuggestion(
+        title=f"По мотивам: {video.title}",
+        why=f"×{outlier.ratio:.1f} к медиане канала, {outlier.views} просмотров; "
+        f"флаги: {', '.join(outlier.reason_flags) or '—'}",
+        source_video_ids=[video_id],
+        audience_level=profile.audience_level if profile else "",
+        key_points=[f"Образец: https://youtu.be/{video_id}"],
     )
 
 

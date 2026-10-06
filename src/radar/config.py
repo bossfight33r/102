@@ -19,7 +19,7 @@ class Settings(BaseSettings):
 
     youtube_api_key: SecretStr | None = None
     anthropic_api_key: SecretStr | None = None
-    anthropic_model: str = "claude-opus-5-5"
+    anthropic_model: str = "claude-haiku-4-5"
     telegram_bot_token: SecretStr | None = None
     admin_ids: Annotated[list[int], NoDecode] = Field(default_factory=list)
 
@@ -114,6 +114,7 @@ class ScoringConfig(_Cfg):
 
 
 class AnalysisConfig(_Cfg):
+    enabled: bool = True  # false — без LLM: дайджест только с цифрами скоринга, $0
     score_threshold: float = 3.5
     max_per_tick: int = 5
     comments_count: int = 20
@@ -129,8 +130,9 @@ class LLMConfig(_Cfg):
     max_tokens: int = 16_000
     light_effort: str | None = "low"
     light_max_tokens: int = 4_000
-    input_usd_per_mtok: float = 4.0
-    output_usd_per_mtok: float = 20.0
+    # null — цены берутся из встроенной таблицы моделей (llm/anthropic.py MODEL_PROFILES)
+    input_usd_per_mtok: float | None = None
+    output_usd_per_mtok: float | None = None
     effort: str | None = "medium"
     refusal_fallback: bool = True
     batch_discount: float = Field(default=0.5, ge=0, le=1, description="скидка Batch API")

@@ -69,7 +69,7 @@ def handle_feedback(
         return ("📌 Добавлено в темы" if ts else "Анализа ещё нет — тема не добавлена"), []
     if action == FeedbackAction.DETAILS:
         analysis = app.db.get_analysis(video_id)
-        if analysis is None:
+        if analysis is None and app.config.analysis.enabled:
             return "Анализа ещё нет", []
         return "", [OutMessage(text=details_text(app, video_id, analysis))]
     if action == FeedbackAction.HIDE_CHANNEL:
@@ -80,7 +80,7 @@ def handle_feedback(
     return "👎 Учтено", []
 
 
-def details_text(app: App, video_id: str, analysis: Analysis) -> str:
+def details_text(app: App, video_id: str, analysis: Analysis | None) -> str:
     return _details_text(app.db, video_id, analysis)
 
 
@@ -92,7 +92,9 @@ def handle_candidate(app: App, code: str, channel_id: str) -> str:
 
 
 def cmd_digest(app: App, now: datetime) -> list[OutMessage]:
-    return render_digest(build_digest(app.db, app.config, now))
+    return render_digest(
+        build_digest(app.db, app.config, now), with_analysis=app.config.analysis.enabled
+    )
 
 
 def cmd_outliers(app: App, now: datetime, niche_id: str | None = None, limit: int = 10) -> str:

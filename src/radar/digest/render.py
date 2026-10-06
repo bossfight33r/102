@@ -44,7 +44,7 @@ def human(n: int) -> str:
     return str(n)
 
 
-def render_card(item: DigestItem) -> OutMessage:
+def render_card(item: DigestItem, with_analysis: bool = True) -> OutMessage:
     flags = ", ".join(FLAG_LABELS[f] for f in item.reason_flags if f in FLAG_LABELS)
     lines = [
         f"<b>{escape(item.title)}</b>",
@@ -53,7 +53,10 @@ def render_card(item: DigestItem) -> OutMessage:
     ]
     if flags:
         lines.append(f"<i>{escape(flags)}</i>")
-    lines.append(f"💡 {escape(item.why_short)}" if item.why_short else "💡 анализ ещё не готов")
+    if item.why_short:
+        lines.append(f"💡 {escape(item.why_short)}")
+    elif with_analysis:
+        lines.append("💡 анализ ещё не готов")
     if item.idea:
         lines.append(f"🎯 Идея: {escape(item.idea)}")
     lines.append(item.url)
@@ -62,7 +65,9 @@ def render_card(item: DigestItem) -> OutMessage:
     )
 
 
-def render_digest(digest: Digest, intro: str | None = None) -> list[OutMessage]:
+def render_digest(
+    digest: Digest, intro: str | None = None, with_analysis: bool = True
+) -> list[OutMessage]:
     if not digest.items:
         return [OutMessage(text=f"📭 Дайджест {digest.date:%d.%m}: новых аутлайеров нет.")]
     niches = list(dict.fromkeys(i.niche_name for i in digest.items))
@@ -77,7 +82,7 @@ def render_digest(digest: Digest, intro: str | None = None) -> list[OutMessage]:
         if item.niche_name != current and len(niches) > 1:
             msgs.append(OutMessage(text=f"— <b>{escape(item.niche_name)}</b> —"))
         current = item.niche_name
-        msgs.append(render_card(item))
+        msgs.append(render_card(item, with_analysis))
     return msgs
 
 
@@ -209,11 +214,15 @@ def render_digest_markdown(digest: Digest, intro: str | None, db: Database | Non
     return "\n".join(out)
 
 
-def details_text(db: Database, video_id: str, analysis: Analysis) -> str:
-    """Полный Analysis + цифры скоринга и спарклайн динамики (бот «Подробнее», radar analyze)."""
+def details_text(db: Database, video_id: str, analysis: Analysis | None) -> str:
+    """Полный Analysis + цифры скоринга и спарклайн (бот «Подробнее», radar analyze).
+    Без анализа (режим без LLM) — только цифры."""
     video = db.get_video(video_id)
     baseline = db.get_baseline(video.channel_id, video.format) if video else None
     metrics = render_metrics(db.get_outlier(video_id), baseline, db.snapshots_for(video_id))
+    if analysis is None:
+        title = escape(video.title) if video else video_id
+        return join_limited([f"🔎 <b>{title}</b>", *metrics, f"https://youtu.be/{video_id}"])
     return render_analysis(analysis, video, metrics)
 
 

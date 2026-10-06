@@ -31,8 +31,10 @@ class ThumbnailStore:
         self.fetch = fetch
 
     def candidates(self, video: Video) -> list[str]:
-        urls = [video.thumbnail_url] if video.thumbnail_url else []
-        urls.append(f"https://i.ytimg.com/vi/{video.id}/hqdefault.jpg")
+        # Для LLM — hqdefault 480×360 (~230 токенов) вместо maxres 1280×720 (~1200): деталей хватает.
+        urls = [f"https://i.ytimg.com/vi/{video.id}/hqdefault.jpg"]
+        if video.thumbnail_url:
+            urls.append(video.thumbnail_url)
         return [u for u in dict.fromkeys(urls) if u]
 
     def get(self, video: Video) -> ImageInput | None:
