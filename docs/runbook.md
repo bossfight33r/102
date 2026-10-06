@@ -5,7 +5,7 @@
 brew install uv                 # если нет
 git clone <repo> ~/outlier-radar && cd ~/outlier-radar
 make setup                      # uv sync, .env и config/*.yaml из примеров, data/
-$EDITOR .env                    # YOUTUBE_API_KEY, ANTHROPIC_API_KEY, TELEGRAM_BOT_TOKEN, ADMIN_IDS
+$EDITOR .env                    # YOUTUBE_API_KEY, LLM_PROVIDER/LLM_API_KEY, TELEGRAM_BOT_TOKEN, ADMIN_IDS
 $EDITOR config/niches.yaml config/channel_profile.yaml
 uv run radar doctor             # всё ли на месте
 uv run radar doctor --online    # + реальный пинг LLM (копейки)
@@ -13,7 +13,7 @@ uv run radar doctor --online    # + реальный пинг LLM (копейк�
 Ключи:
 - **YouTube**: Google Cloud Console → проект → включить «YouTube Data API v3» → Credentials → API key (ограничьте ключ этим API).
 - **Telegram**: @BotFather → /newbot → токен. Свой user id — у @userinfobot; запишите в `ADMIN_IDS`.
-- **Anthropic**: console.anthropic.com → API keys. Модель — `ANTHROPIC_MODEL`.
+- **LLM**: по умолчанию Gemini — aistudio.google.com → Get API key → `LLM_API_KEY`. Другие провайдеры и сравнение моделей — `docs/llm.md`.
 
 ## Первый прогон вручную
 ```bash
@@ -56,7 +56,9 @@ plist запускает `zsh -lc`, чтобы подхватить PATH с `uv`
 | задачи `deferred` в `radar tick` | планировщик бережёт квоту/резерв — это норма около лимита (`radar quota`) |
 | `HTTP 403 accessNotConfigured` | API не включён в проекте Google Cloud |
 | `HTTP 400 keyInvalid` | неверный ключ YouTube |
-| `LLMError: Anthropic API: HTTP 401` | неверный `ANTHROPIC_API_KEY` |
+| `LLMError: gemini: HTTP 401/403` | неверный `LLM_API_KEY` или провайдер (`radar doctor`) |
+| `LLMError: …: HTTP 400 …model…` | модель не существует у провайдера — проверьте `LLM_MODEL` |
+| `цена неизвестна` в doctor | задайте `llm.input/output_usd_per_mtok`, иначе дневной лимит не работает |
 | `лимит $…/сутки на LLM исчерпан` | `analysis.max_cost_usd_per_day` |
 | бот молчит | ваш id не в `ADMIN_IDS` (чужим бот не отвечает), процесс не запущен (`launchctl print …bot`) |
 | `radar tick уже выполняется` | предыдущий tick ещё идёт; если завис — `ps aux | grep radar` |

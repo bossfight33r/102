@@ -1,6 +1,6 @@
 # Outlier Radar
 
-Мониторит ниши на YouTube через **официальный YouTube Data API v3** (только API-ключ, публичные данные), находит ролики-аутлайеры — набравшие намного больше обычного для своего канала, — разбирает через Claude, почему они выстрелили, и каждое утро присылает в Telegram дайджест с идеями, **адаптированными под ваш канал** (паттерн, а не копия).
+Мониторит ниши на YouTube через **официальный YouTube Data API v3** (только API-ключ, публичные данные), находит ролики-аутлайеры — набравшие намного больше обычного для своего канала, — разбирает через LLM (Gemini, DeepSeek, OpenAI, локальная Ollama или Claude — на выбор, `docs/llm.md`), почему они выстрелили, и каждое утро присылает в Telegram дайджест с идеями, **адаптированными под ваш канал** (паттерн, а не копия).
 
 Без скрейпинга, yt-dlp, скачивания видео и субтитров: анализ строится на метаданных, главах, превью, динамике просмотров и топ-комментариях.
 
@@ -10,7 +10,7 @@ brew install uv
 git clone <repo> outlier-radar && cd outlier-radar
 make setup                 # зависимости + .env и config/*.yaml из примеров
 ```
-Заполните `.env` (`YOUTUBE_API_KEY`, `ANTHROPIC_API_KEY`, `TELEGRAM_BOT_TOKEN`, `ADMIN_IDS`), где взять ключи — `docs/runbook.md`.
+Заполните `.env` (`YOUTUBE_API_KEY`, `LLM_PROVIDER` + `LLM_API_KEY`, `TELEGRAM_BOT_TOKEN`, `ADMIN_IDS`), где взять ключи — `docs/runbook.md`.
 
 ## Быстрый старт за 5 минут
 1. `make demo` — весь конвейер на фикстурах без ключей и сети (дайджест печатается в консоль).
@@ -42,9 +42,9 @@ make setup                 # зависимости + .env и config/*.yaml из
 | `radar doctor [--online]` | диагностика |
 
 ## Как это работает
-`watchlist` (uploads-плейлисты) → `snapshots` (videos.list по 50) → `score` (медиана/MAD по формату, ratio, robust z, velocity) → `analyze` (Claude: метаданные + превью + комментарии + ваш профиль; опционально Batch API −50%) → `digest` (Telegram, кнопки «В темы», «Подробнее», «Скрыть канал», «Не то») → `trends` (еженедельно).
+`watchlist` (uploads-плейлисты) → `snapshots` (videos.list по 50) → `score` (медиана/MAD по формату, ratio, robust z, velocity) → `analyze` (LLM на выбор: метаданные + превью + комментарии + ваш профиль) → `digest` (Telegram, кнопки «В темы», «Подробнее», «Скрыть канал», «Не то») → `trends` (еженедельно).
 
-Документация: `docs/architecture.md`, `docs/scoring.md`, `docs/quota.md`, `docs/runbook.md`, `docs/niches.md`, `docs/decisions/`. Статус разработки — `docs/STATUS.md`.
+Документация: `docs/llm.md` (выбор модели), `docs/architecture.md`, `docs/scoring.md`, `docs/quota.md`, `docs/runbook.md`, `docs/niches.md`, `docs/decisions/`. Статус разработки — `docs/STATUS.md`.
 
 ## Разработка
 `make test`, `make lint`, `make fmt`. Тесты без сети: фейки YouTube (JSON-фикстуры), LLM и Telegram.

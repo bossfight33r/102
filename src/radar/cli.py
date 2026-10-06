@@ -530,10 +530,6 @@ def doctor(
         f"YOUTUBE_API_KEY: {'задан' if secret_state(s.youtube_api_key) else 'нет'}",
     )
     line(
-        secret_state(s.anthropic_api_key) or None,
-        f"ANTHROPIC_API_KEY: {'задан' if secret_state(s.anthropic_api_key) else 'нет'}; модель {s.anthropic_model}",
-    )
-    line(
         secret_state(s.telegram_bot_token) or None,
         f"TELEGRAM_BOT_TOKEN: {'задан' if secret_state(s.telegram_bot_token) else 'нет'}",
     )
@@ -586,20 +582,39 @@ def doctor(
         if status != "ok":
             line(None, f"Задача {name}: {status} ({at.isoformat()})")
 
-    if a.has_llm():
-        if online:
+    if not a.config.analysis.enabled:
+        line(True, "LLM: выключен (analysis.enabled: false) — дайджест только с цифрами")
+    elif a.has_llm():
+        llm_ok = True
+        try:
+            llm = a.llm
+            prices = getattr(llm, "prices", lambda: None)()
+            price = (
+                f"${prices[0]:g}/${prices[1]:g} за 1M"
+                if prices
+                else "цена неизвестна — задайте llm.input/output_usd_per_mtok, иначе дневной лимит не работает"
+            )
+            line(True if prices else None, f"LLM: {s.llm_provider} · {llm.model} · {price}")
+        except ConfigError as e:
+            llm_ok = False
+            problems += 1
+            line(False, f"LLM: {e}")
+        if llm_ok and online:
             try:
                 r = a.llm.complete(
                     system="Ответь одним словом.", prompt="ping", max_tokens=1024, effort="low"
                 )
+                if not r.text.strip():
+                    raise RuntimeError("пустой ответ")
                 line(True, f"LLM доступна: {r.model}, ${r.cost:.5f}")
             except Exception as e:
                 problems += 1
                 line(False, f"LLM недоступна: {e}")
-        else:
-            line(True, "LLM: ключ есть (реальный пинг: radar doctor --online)")
+        elif llm_ok:
+            line(True, "LLM: реальный пинг — radar doctor --online")
     else:
-        line(None, "LLM: нет ключа — анализ отключён")
+        key_name = "ANTHROPIC_API_KEY" if s.llm_provider == "anthropic" else "LLM_API_KEY"
+        line(None, f"LLM: {s.llm_provider} — нет {key_name}, анализ отключён")
 
     if problems:
         raise typer.Exit(1)

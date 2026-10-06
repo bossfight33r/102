@@ -59,7 +59,8 @@ channel: "@my_handle"                      # необязательно: для 
 | llm.input/output_usd_per_mtok | 4 / 20 | цены модели для учёта стоимости |
 | llm.effort | medium | output_config.effort (null — не передавать) |
 | llm.refusal_fallback | true | серверный fallback при отказе модели (не в Batch API) |
-| llm.batch_discount | 0.5 | множитель стоимости пакетных запросов |
+| llm.batch_discount | 0.5 | множитель стоимости пакетных запросов (только anthropic) |
+| llm.json_mode / image_detail / reasoning_effort | true / null / null | для OpenAI-совместимых провайдеров, см. `docs/llm.md` |
 | discovery.auto_approve | false | кандидаты сразу в watchlist |
 | discovery.published_within_days | 30 | publishedAfter для search.list |
 | discovery.max_results | 50 | результатов на запрос |
@@ -77,4 +78,4 @@ channel: "@my_handle"                      # необязательно: для 
 | trends.use_llm | false | LLM-резюме трендов (prompts/trends.md) |
 
 ## .env — секреты
-`YOUTUBE_API_KEY`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `TELEGRAM_BOT_TOKEN`, `ADMIN_IDS` (через запятую), необязательные `RADAR_DATA_DIR`, `RADAR_CONFIG_DIR`, `LOG_LEVEL`, `LOG_JSON`, `RADAR_FAKE`, `RADAR_NOW`.
+`YOUTUBE_API_KEY`, `LLM_PROVIDER`, `LLM_MODEL`, `LLM_API_KEY`, `LLM_BASE_URL`, `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `TELEGRAM_BOT_TOKEN`, `ADMIN_IDS` (через запятую), необязательные `RADAR_DATA_DIR`, `RADAR_CONFIG_DIR`, `LOG_LEVEL`, `LOG_JSON`, `RADAR_FAKE`, `RADAR_NOW`.

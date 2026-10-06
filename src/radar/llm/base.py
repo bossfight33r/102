@@ -33,8 +33,10 @@ class LLMProvider(Protocol):
         images: Sequence[ImageInput] = (),
         max_tokens: int = 4000,
         effort: str | None = None,
+        json_mode: bool = False,
     ) -> LLMResponse:
-        """effort переопределяет llm.effort из конфига. Мышление модели расходует max_tokens."""
+        """effort переопределяет llm.effort из конфига. Мышление модели расходует max_tokens.
+        json_mode — попросить у провайдера ответ строго JSON-объектом (если поддерживает)."""
         ...
 
 

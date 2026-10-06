@@ -59,6 +59,10 @@ llm:
   effort: medium             # для Sonnet/Opus; Haiku 4.5 параметр не принимает — не отправляется
   refusal_fallback: true     # не действует в Batch API
   batch_discount: 0.5
+  # OpenAI-совместимые провайдеры (gemini, deepseek, openai, openrouter, ollama) — docs/llm.md
+  json_mode: true
+  image_detail: null         # low — дешевле картинка у OpenAI
+  reasoning_effort: null     # low|medium|high для «думающих» моделей
 
 discovery:
   auto_approve: false        # true — кандидаты сразу в watchlist

@@ -18,6 +18,11 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     youtube_api_key: SecretStr | None = None
+    # LLM: anthropic | gemini | deepseek | openai | openrouter | ollama | custom
+    llm_provider: str = "gemini"
+    llm_model: str = ""  # пусто — модель по умолчанию для провайдера
+    llm_base_url: str = ""  # пусто — адрес по умолчанию для провайдера
+    llm_api_key: SecretStr | None = None
     anthropic_api_key: SecretStr | None = None
     anthropic_model: str = "claude-haiku-4-5"
     telegram_bot_token: SecretStr | None = None
@@ -58,7 +63,12 @@ class Settings(BaseSettings):
     def secret_values(self) -> list[str]:
         return [
             s.get_secret_value()
-            for s in (self.youtube_api_key, self.anthropic_api_key, self.telegram_bot_token)
+            for s in (
+                self.youtube_api_key,
+                self.anthropic_api_key,
+                self.llm_api_key,
+                self.telegram_bot_token,
+            )
             if s is not None and s.get_secret_value()
         ]
 
@@ -136,6 +146,12 @@ class LLMConfig(_Cfg):
     effort: str | None = "medium"
     refusal_fallback: bool = True
     batch_discount: float = Field(default=0.5, ge=0, le=1, description="скидка Batch API")
+    # OpenAI-совместимые провайдеры
+    json_mode: bool = True  # response_format=json_object для анализа
+    image_detail: str | None = None  # "low" — дешевле картинка у OpenAI; null — не передавать
+    reasoning_effort: str | None = (
+        None  # low|medium|high для reasoning-моделей; null — не передавать
+    )
 
 
 class DiscoveryConfig(_Cfg):

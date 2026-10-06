@@ -217,7 +217,11 @@ class Analyzer:
             )
             try:
                 resp = self.llm.complete(
-                    system=self.system, prompt=p, images=images, max_tokens=self.cfg.llm.max_tokens
+                    system=self.system,
+                    prompt=p,
+                    images=images,
+                    max_tokens=self.cfg.llm.max_tokens,
+                    json_mode=True,
                 )
             except LLMError as e:
                 if e.response:  # оплаченный, но пустой ответ — учитываем в дневном лимите

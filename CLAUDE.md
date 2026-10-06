@@ -21,7 +21,7 @@
 
 ## Карта
 - `app.py` — сборка зависимостей (App.build с подменой фейками); `cli.py` — команды `radar`.
-- `youtube/` — протокол клиента, HTTP-клиент (+ скачивание превью), фейк, квота и прогноз квоты. `llm/` — провайдер (обычный + Batch API), фейки.
+- `youtube/` — протокол клиента, HTTP-клиент (+ скачивание превью), фейк, квота и прогноз квоты. `llm/` — провайдеры: `openai_compat.py` (Gemini/DeepSeek/OpenAI/OpenRouter/Ollama, по умолчанию) и `anthropic.py` (+ Batch API), фейки; выбор — `LLM_PROVIDER`.
 - `collect/` (watchlist, snapshots, discovery, adhoc — разбор любого ролика, mine — мой канал) → `score/` → `analyze/` (синхронно или пакетами) → `digest/` (сборка, рендер, архив) → `bot/` (handlers, notifier, keyboards, main + watchdog), `export/` (темы, CSV, YAML).
 - `tick.py` — планировщик задач; `trends.py` — тренды, вопросы зрителей, рекомендации по порогам; `delivery.py` — лимит повторов доставки; `backup.py` — бэкап БД.
 - БД: миграции — только добавлением версии в `db._MIGRATIONS`; соединение под RLock (потоки бота).

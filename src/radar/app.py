@@ -95,23 +95,49 @@ class App:
 
                 self._llm = FakeLLM()
             else:
-                key = self.settings.anthropic_api_key
-                if key is None or not key.get_secret_value():
-                    raise ConfigError("ANTHROPIC_API_KEY не задан")
-                from radar.llm.anthropic import AnthropicLLM
-
-                self._llm = AnthropicLLM(
-                    key.get_secret_value(), self.settings.anthropic_model, self.config.llm
-                )
+                self._llm = self._make_llm()
         return self._llm
+
+    def _make_llm(self) -> LLMProvider:
+        s = self.settings
+        if s.llm_provider == "anthropic":
+            key = s.anthropic_api_key or s.llm_api_key
+            if key is None or not key.get_secret_value():
+                raise ConfigError("ANTHROPIC_API_KEY не задан")
+            from radar.llm.anthropic import AnthropicLLM
+
+            return AnthropicLLM(
+                key.get_secret_value(), s.llm_model or s.anthropic_model, self.config.llm
+            )
+        from radar.llm.openai_compat import PRESETS, OpenAICompatLLM
+
+        if s.llm_provider not in PRESETS:
+            raise ConfigError(
+                f"LLM_PROVIDER={s.llm_provider} неизвестен: anthropic, {', '.join(PRESETS)}"
+            )
+        try:
+            return OpenAICompatLLM(
+                provider=s.llm_provider,
+                model=s.llm_model,
+                base_url=s.llm_base_url,
+                api_key=s.llm_api_key.get_secret_value() if s.llm_api_key else "",
+                cfg=self.config.llm,
+            )
+        except ValueError as e:
+            raise ConfigError(str(e)) from None
 
     def has_llm(self) -> bool:
         if not self.config.analysis.enabled:
             return False
         if self._llm is not None or self.settings.radar_fake:
             return True
-        key = self.settings.anthropic_api_key
-        return key is not None and bool(key.get_secret_value())
+        s = self.settings
+        if s.llm_provider == "anthropic":
+            key = s.anthropic_api_key or s.llm_api_key
+            return key is not None and bool(key.get_secret_value())
+        if s.llm_provider == "ollama":
+            return True
+        return s.llm_api_key is not None and bool(s.llm_api_key.get_secret_value())
 
     @property
     def notifier(self) -> Notifier:

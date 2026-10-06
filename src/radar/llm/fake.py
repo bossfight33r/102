@@ -50,6 +50,7 @@ class FakeLLM:
         images: Sequence[ImageInput] = (),
         max_tokens: int = 4000,
         effort: str | None = None,
+        json_mode: bool = False,
     ) -> LLMResponse:
         self.calls.append(
             {
@@ -57,6 +58,7 @@ class FakeLLM:
                 "prompt": prompt,
                 "images": len(images),
                 "effort": effort,
+                "json_mode": json_mode,
                 "max_tokens": max_tokens,
             }
         )

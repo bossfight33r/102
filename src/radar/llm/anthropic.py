@@ -55,6 +55,12 @@ class AnthropicLLM:
         self.profile = model_profile(model)
         self._client = client or anthropic.Anthropic(api_key=api_key, max_retries=3, timeout=120.0)
 
+    def prices(self) -> tuple[float, float]:
+        return (
+            self.cfg.input_usd_per_mtok or self.profile.input_usd,
+            self.cfg.output_usd_per_mtok or self.profile.output_usd,
+        )
+
     def cost(self, input_tokens: int, output_tokens: int) -> float:
         in_price = self.cfg.input_usd_per_mtok or self.profile.input_usd
         out_price = self.cfg.output_usd_per_mtok or self.profile.output_usd
@@ -123,6 +129,7 @@ class AnthropicLLM:
         images: Sequence[ImageInput] = (),
         max_tokens: int = 4000,
         effort: str | None = None,
+        json_mode: bool = False,
     ) -> LLMResponse:
         kwargs = self._params(system, prompt, images, max_tokens, effort)
         try:

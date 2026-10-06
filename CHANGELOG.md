@@ -1,5 +1,11 @@
 # Changelog
 
+## [Любая модель LLM]
+- `llm/openai_compat.py`: универсальный провайдер OpenAI-совместимого API — Gemini, DeepSeek, OpenAI, OpenRouter, локальная Ollama, свой адрес. Пресеты адреса и модели, ретраи, картинки base64, JSON-режим, таблица цен с переопределением.
+- Выбор в `.env`: `LLM_PROVIDER`, `LLM_MODEL`, `LLM_API_KEY`, `LLM_BASE_URL`. По умолчанию `gemini` / `gemini-3.5-flash-lite`; Claude — `LLM_PROVIDER=anthropic`.
+- `radar doctor` показывает провайдера, модель и цену (или предупреждает, что цена неизвестна).
+- `docs/llm.md` — провайдеры, ключи, цены, как сравнивать модели.
+
 ## [Стоимость LLM]
 - Режим без LLM: `analysis.enabled: false` — дайджест и «Подробнее» только с цифрами скоринга, «В темы» сохраняет ролик-образец; $0 на LLM.
 - Превью для LLM — hqdefault 480×360 (~230 токенов вместо ~1200 у maxres).
