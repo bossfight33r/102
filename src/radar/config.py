@@ -192,6 +192,18 @@ class BackupConfig(_Cfg):
     keep: int = Field(default=7, ge=1)
 
 
+class ExploreConfig(_Cfg):
+    days: int = Field(default=30, ge=1, le=365, description="окно свежести роликов")
+    max_topics: int = Field(
+        default=5, ge=1, le=20, description="тем за один запуск (по 102 ед. квоты)"
+    )
+    small_channel_subs: int = 50_000
+    big_channel_subs: int = 500_000
+    examples: int = Field(default=3, ge=0, le=10)
+    expand_count: int = Field(default=8, ge=2, le=15)
+    popular_limit: int = Field(default=15, ge=1, le=50)
+
+
 class AppConfig(_Cfg):
     quota: QuotaConfig = Field(default_factory=QuotaConfig)
     snapshots: SnapshotConfig = Field(default_factory=SnapshotConfig)
@@ -205,6 +217,7 @@ class AppConfig(_Cfg):
     trends: TrendsConfig = Field(default_factory=TrendsConfig)
     bot: BotConfig = Field(default_factory=BotConfig)
     backup: BackupConfig = Field(default_factory=BackupConfig)
+    explore: ExploreConfig = Field(default_factory=ExploreConfig)
 
 
 def resolve_config_file(config_dir: Path, name: str) -> Path | None:

@@ -369,3 +369,53 @@ class MyChannelReport(Model):
     subs: int | None = None
     baselines: list[ChannelBaseline] = Field(default_factory=list)
     videos: list[MyVideoScore] = Field(default_factory=list)
+
+
+# --- популярное и поиск ниш ---------------------------------------------------------
+
+
+class PopularVideo(Model):
+    video_id: str
+    title: str
+    channel_id: str
+    channel_title: str = ""
+    subs: int | None = None
+    format: VideoFormat
+    duration_sec: int
+    age_days: float
+    views: int
+    likes: int | None = None
+    comments: int | None = None
+    views_per_day: float
+    like_rate: float | None = None
+    subs_ratio: float | None = Field(default=None, description="просмотры / подписчики канала")
+    url: str
+    thumbnail_url: str | None = None
+
+
+class ExampleVideo(Model):
+    title: str
+    url: str
+    views: int
+    channel_title: str
+    subs: int | None = None
+
+
+class NicheScore(Model):
+    topic: str
+    n_videos: int
+    median_views_per_day: float
+    median_views: float
+    small_channel_share: float = Field(
+        description="доля роликов малых каналов (< small_channel_subs)"
+    )
+    breakout_share: float = Field(
+        description="доля роликов, набравших больше просмотров, чем подписчиков у канала"
+    )
+    big_channel_share: float = Field(
+        description="доля роликов крупных каналов (> big_channel_subs)"
+    )
+    shorts_share: float
+    score: float
+    examples: list[ExampleVideo] = Field(default_factory=list)
+    note: str = ""

@@ -113,6 +113,26 @@ class HttpYouTubeClient:
             {"part": "snippet,contentDetails,statistics", "id": ",".join(ids), "maxResults": 50},
         )
 
+    def videos_most_popular(
+        self,
+        *,
+        region_code: str,
+        category_id: str | None = None,
+        max_results: int = 50,
+        page_token: str | None = None,
+    ) -> dict[str, Any]:
+        return self._get(
+            "/videos",
+            {
+                "part": "snippet,contentDetails,statistics",
+                "chart": "mostPopular",
+                "regionCode": region_code,
+                "videoCategoryId": category_id,
+                "maxResults": max_results,
+                "pageToken": page_token,
+            },
+        )
+
     def search_list(
         self,
         *,

@@ -253,6 +253,59 @@ def cmd_me(app: App, now: datetime) -> str:
         return f"Не получилось: {escape(str(e))}"
 
 
+def cmd_popular(app: App, query: str, now: datetime) -> str:
+    """/popular [запрос] — топ YouTube или самые просматриваемые по теме за неделю."""
+    from radar.collect.explore import default_region_language, popular_chart, popular_search
+    from radar.digest.render import render_popular
+    from radar.youtube.client import QuotaExceededError, YouTubeAPIError
+    from radar.youtube.quota import QuotaDeferred
+
+    region, lang = default_region_language(app)
+    query = query.strip()
+    try:
+        if query:
+            rows = popular_search(
+                app.youtube, query, app.config, now, days=7, region=region, language=lang
+            )
+            return render_popular(rows, f"Популярное по теме «{query}» за 7 дн.")
+        rows = popular_chart(app.youtube, app.config, now, region=region)
+        return render_popular(rows, f"Топ YouTube · {region}")
+    except (QuotaDeferred, QuotaExceededError, YouTubeAPIError) as e:
+        return f"Не получилось: {escape(str(e))}"
+
+
+def cmd_explore(app: App, args: str, now: datetime, *, expand: bool = False) -> str:
+    """/explore тема1, тема2 — рейтинг ниш; /expand тема — LLM разворачивает тему в подниши."""
+    from radar.collect.explore import expand_topic, explore_cost, run_explore
+    from radar.digest.render import render_niches
+    from radar.llm.base import LLMError
+
+    topics = [t.strip() for t in args.replace("\n", ",").split(",") if t.strip()]
+    if not topics:
+        return (
+            "Использование: /explore тема1, тема2, … — оценить ниши (≈102 ед. квоты на тему)\n"
+            "/expand широкая тема — LLM предложит подниши и оценит их"
+        )
+    prefix = ""
+    if expand:
+        if not app.has_llm():
+            return "Для /expand нужен LLM (LLM_PROVIDER/LLM_API_KEY)"
+        try:
+            topics = expand_topic(app.llm, topics[0], app.profile, app.config, app.db, now)
+        except LLMError as e:
+            return f"Не получилось: {escape(str(e))}"
+        prefix = "Подниши от LLM: " + escape("; ".join(topics)) + "\n\n"
+    try:
+        scores, days = run_explore(app, topics, now)
+    except Exception as e:  # ошибки API/конфига — без трейсбека в чат
+        return f"Не получилось: {escape(str(e))}"
+    cost = explore_cost(app.config, len(topics))
+    text = render_niches(scores, days, cost_note=f" · ≈{cost} ед. квоты")
+    if len(scores) < min(len(topics), app.config.explore.max_topics):
+        text += "\n⚠️ Квоты хватило не на все темы."
+    return prefix + text
+
+
 def cmd_questions(app: App, now: datetime) -> str:
     from radar.trends import audience_questions, render_questions
 
@@ -289,7 +342,7 @@ def _now() -> datetime:
 async def on_help(message: Message, app: App) -> None:
     await message.answer(
         "Outlier Radar. Команды:\n/digest — дайджест за сегодня\n/outliers [ниша] — аутлайеры за 48 ч\n"
-        "/niches — ниши\n/candidates — одобрение каналов\n/quota — квота API и расход LLM\n/trends — тренды за неделю\n/questions — вопросы зрителей за неделю\n/me — мой канал против моей медианы\n"
+        "/niches — ниши\n/candidates — одобрение каналов\n/quota — квота API и расход LLM\n/trends — тренды за неделю\n/questions — вопросы зрителей за неделю\n/me — мой канал против моей медианы\n/popular [тема] — популярное по скорости набора\n/explore тема1, тема2 — ниши под свои ролики\n/expand тема — LLM разворачивает тему в подниши\n"
         "/analyze &lt;ссылка&gt; — разобрать любой ролик\n/add @канал [ниша] — в watchlist"
     )
 
@@ -317,6 +370,23 @@ async def on_quota(message: Message, app: App) -> None:
 
 async def on_trends(message: Message, app: App) -> None:
     await message.answer(cmd_trends(app, _now()))
+
+
+async def on_popular(message: Message, app: App, command: CommandObject) -> None:
+    text = await asyncio.to_thread(cmd_popular, app, command.args or "", _now())
+    await message.answer(text, disable_web_page_preview=True)
+
+
+async def on_explore(message: Message, app: App, command: CommandObject) -> None:
+    await message.answer("⏳ Ищу ниши…")
+    text = await asyncio.to_thread(cmd_explore, app, command.args or "", _now())
+    await message.answer(text, disable_web_page_preview=True)
+
+
+async def on_expand(message: Message, app: App, command: CommandObject) -> None:
+    await message.answer("⏳ Разворачиваю тему и ищу ниши…")
+    text = await asyncio.to_thread(cmd_explore, app, command.args or "", _now(), expand=True)
+    await message.answer(text, disable_web_page_preview=True)
 
 
 async def on_me(message: Message, app: App) -> None:
@@ -372,6 +442,9 @@ def build_router() -> Router:
     r.message.register(on_analyze, Command("analyze"))
     r.message.register(on_questions, Command("questions"))
     r.message.register(on_me, Command("me"))
+    r.message.register(on_popular, Command("popular"))
+    r.message.register(on_explore, Command("explore"))
+    r.message.register(on_expand, Command("expand"))
     r.message.register(on_add, Command("add"))
     r.callback_query.register(on_feedback, F.data.startswith("fb:"))
     r.callback_query.register(on_candidate, F.data.startswith("ch:"))

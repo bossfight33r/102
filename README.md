@@ -29,6 +29,8 @@ make setup                 # зависимости + .env и config/*.yaml из
 | `radar score` | базлайны и аутлайеры |
 | `radar outliers [--niche ID] [--format short\|long] [--days N]` | список аутлайеров |
 | `radar analyze VIDEO_ID\|ссылка [--force]` | разбор LLM любого ролика (кешируется) |
+| `radar explore ТЕМА… [--expand] [--limit N] [--format] [--days]` | поиск ниш под свои видео: спрос, шанс малых каналов, конкуренция (≈102 ед. квоты на тему) |
+| `radar popular [ТЕМА] [--region] [--days] [--category]` | популярные ролики по скорости набора; без темы — топ YouTube (≈2 ед. квоты) |
 | `radar me [--top 10]` | мой канал против моей медианы (`channel` в channel_profile.yaml) |
 | `radar topics` | темы, отмеченные «В темы» |
 | `radar questions [--days 7]` | вопросы зрителей по нишам — источник тем |
@@ -38,7 +40,7 @@ make setup                 # зависимости + .env и config/*.yaml из
 | `radar quota [--plan]` | расход квоты YouTube и LLM; `--plan` — прогноз расхода в сутки при текущих настройках |
 | `radar backup` | копия БД в `data/backups/` (tick делает раз в сутки) |
 | `radar tick` | все задачи с наступившим сроком (для launchd) |
-| `radar bot` | Telegram-бот: /digest /outliers /niches /candidates /quota /trends /questions /me /analyze &lt;ссылка&gt; /add @канал; watchdog алертит, если tick встал |
+| `radar bot` | Telegram-бот: /digest /outliers /niches /candidates /quota /trends /questions /me /popular /explore /expand /analyze &lt;ссылка&gt; /add @канал; watchdog алертит, если tick встал |
 | `radar doctor [--online]` | диагностика |
 
 ## Как это работает

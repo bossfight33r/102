@@ -1,5 +1,10 @@
 # Changelog
 
+## [Поиск ниш и популярное]
+- `radar explore` / `/explore` / `/expand`: рейтинг ниш под свои видео — спрос (просмотры/сутки), доля малых каналов и роликов, выстреливших выше подписчиков автора, засилье крупных каналов, shorts-доля, примеры роликов; `--expand` просит LLM развернуть широкую тему в подниши. Экспорт `data/exports/niche_explore.yaml`.
+- `radar popular` / `/popular`: топ YouTube по региону (mostPopular, ≈2 ед. квоты) или самые просматриваемые по теме за N дней, по скорости набора; лайки, отношение просмотров к подписчикам.
+- `explore:` в settings.yaml; прогноз и учёт квоты (purpose `discovery:explore`).
+
 ## [Любая модель LLM]
 - `llm/openai_compat.py`: универсальный провайдер OpenAI-совместимого API — Gemini, DeepSeek, OpenAI, OpenRouter, локальная Ollama, свой адрес. Пресеты адреса и модели, ретраи, картинки base64, JSON-режим, таблица цен с переопределением.
 - Выбор в `.env`: `LLM_PROVIDER`, `LLM_MODEL`, `LLM_API_KEY`, `LLM_BASE_URL`. По умолчанию `gemini` / `gemini-3.5-flash-lite`; Claude — `LLM_PROVIDER=anthropic`.

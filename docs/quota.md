@@ -36,3 +36,6 @@ Search не используется для watchlist: новые видео —
 - Ретраи с экспоненциальной паузой — на 5xx, 429, rateLimitExceeded и сетевые ошибки. Каждая попытка, дошедшая до API, — один вызов в журнале на уровне обёртки (ретраи внутри HTTP-клиента не пишутся отдельно; Google может списать их — держите `safety_margin`).
 
 Посмотреть расход: `radar quota`.
+
+## Поиск ниш и популярное
+`radar explore` — ≈102 ед. на тему (search 100 + videos.list 1 + channels.list 1), до `explore.max_topics` тем за запуск; расход идёт из резерва discovery (purpose `discovery:explore`). `radar popular` без темы — `videos.list chart=mostPopular` 1 ед. + подписчики каналов 1 ед.; по теме — как одна тема explore.

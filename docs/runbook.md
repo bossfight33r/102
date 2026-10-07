@@ -15,6 +15,15 @@ uv run radar doctor --online    # + реальный пинг LLM (копейк�
 - **Telegram**: @BotFather → /newbot → токен. Свой user id — у @userinfobot; запишите в `ADMIN_IDS`.
 - **LLM**: по умолчанию Gemini — aistudio.google.com → Get API key → `LLM_API_KEY`. Другие провайдеры и сравнение моделей — `docs/llm.md`.
 
+## Поиск ниш и популярного
+```bash
+uv run radar explore "AI агенты" "excel лайфхаки" "notion шаблоны"   # рейтинг тем
+uv run radar explore "excel" --expand                                   # LLM разворачивает тему в 8 подниш
+uv run radar popular                                                     # топ YouTube региона
+uv run radar popular "ai агенты" --days 14 --format short              # самое просматриваемое по теме
+```
+Оценка ниши: спрос = медиана просмотров/сутки у свежих популярных роликов; «малые каналы» и «выстрелили выше подписчиков» — доля роликов каналов < 50 тыс. подписчиков и роликов, набравших больше просмотров, чем подписчиков у автора; «крупные» — каналы > 500 тыс. Чем больше выстрелов у малых и меньше крупных — тем легче войти новому каналу. Итог — `data/exports/niche_explore.yaml`. Квота: тема ≈ 102 ед. (`explore.max_topics` = 5 за запуск), берётся из резерва discovery.
+
 ## Первый прогон вручную
 ```bash
 uv run radar poll          # seed-каналы → watchlist → снимки
@@ -67,7 +76,7 @@ plist запускает `zsh -lc`, чтобы подхватить PATH с `uv`
 | аутлайеров нет | мало истории: базлайну нужны видео старше 7 дней (`radar channel list`, `radar outliers --days 30`) |
 
 ## Бот
-Команды: `/digest`, `/outliers`, `/niches`, `/candidates`, `/quota` (квота + расход LLM), `/trends`, `/questions` (вопросы зрителей за неделю), `/me` (мой канал против моей медианы, 3 ед. квоты), `/analyze <ссылка>` (любой ролик, 1–2 ед. квоты + LLM), `/add @канал [ниша]`. Watchdog внутри бота присылает алерт, если `radar tick` не запускался дольше `bot.watchdog_minutes` (Мак спал, launchd выгружен) — по одному на каждый простой.
+Команды: `/digest`, `/outliers`, `/niches`, `/candidates`, `/quota` (квота + расход LLM), `/trends`, `/questions` (вопросы зрителей за неделю), `/me` (мой канал против моей медианы, 3 ед. квоты), `/popular [тема]` (топ YouTube ≈2 ед. или самое просматриваемое по теме ≈102 ед.), `/explore тема1, тема2` (рейтинг ниш, ≈102 ед. на тему), `/expand тема` (LLM разворачивает тему в подниши и оценивает их), `/analyze <ссылка>` (любой ролик, 1–2 ед. квоты + LLM), `/add @канал [ниша]`. Watchdog внутри бота присылает алерт, если `radar tick` не запускался дольше `bot.watchdog_minutes` (Мак спал, launchd выгружен) — по одному на каждый простой.
 
 ## Данные
 - БД: `data/radar.db` (SQLite, WAL). Бэкап — автоматически раз в сутки в `data/backups/radar-YYYYMMDD.db` (7 последних), вручную `radar backup`. Восстановление: остановить tick и бота (`make launchd-uninstall`), `cp data/backups/radar-…db data/radar.db`, `make launchd-install`.

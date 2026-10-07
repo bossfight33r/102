@@ -104,6 +104,31 @@ class FakeYouTubeClient:
             raise YouTubeAPIError("too many ids", 400, "badRequest")
         return {"items": [self.videos[i] for i in ids if i in self.videos]}
 
+    def videos_most_popular(
+        self,
+        *,
+        region_code: str,
+        category_id: str | None = None,
+        max_results: int = 50,
+        page_token: str | None = None,
+    ) -> dict[str, Any]:
+        self._enter(
+            "videos.mostPopular",
+            {"region_code": region_code, "category_id": category_id, "max_results": max_results},
+        )
+        items = sorted(
+            self.videos.values(),
+            key=lambda v: int(v.get("statistics", {}).get("viewCount", 0)),
+            reverse=True,
+        )
+        if category_id:
+            items = [
+                v
+                for v in items
+                if v.get("snippet", {}).get("categoryId", category_id) == category_id
+            ]
+        return {"items": items[:max_results]}
+
     def search_list(
         self,
         *,

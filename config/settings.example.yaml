@@ -95,3 +95,12 @@ bot:
 backup:
   enabled: true              # ежедневная копия data/radar.db в data/backups/
   keep: 7
+
+explore:                     # radar explore / radar popular
+  days: 30                   # окно свежести роликов
+  max_topics: 5              # тем за запуск (каждая ≈ 102 ед. квоты)
+  small_channel_subs: 50000  # «малый» канал
+  big_channel_subs: 500000   # «крупный» канал
+  examples: 3
+  expand_count: 8            # --expand: сколько подниш просить у LLM
+  popular_limit: 15

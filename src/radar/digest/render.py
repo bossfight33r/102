@@ -13,8 +13,10 @@ from radar.schemas import (
     ChannelBaseline,
     Digest,
     DigestItem,
+    NicheScore,
     Outlier,
     OutMessage,
+    PopularVideo,
     Video,
     VideoSnapshot,
 )
@@ -230,3 +232,52 @@ def llm_spend_line(db: Database, limit_usd: float, now: datetime) -> str:
     day = db.llm_cost_since(now - timedelta(hours=24))
     week = db.llm_cost_since(now - timedelta(days=7))
     return f"LLM: ${day:.2f} за 24 ч (лимит ${limit_usd:.2f}), ${week:.2f} за 7 дней"
+
+
+def _human_age(days: float) -> str:
+    return f"{days * 24:.0f} ч" if days < 2 else f"{days:.0f} дн."
+
+
+def render_popular(rows: list[PopularVideo], title: str) -> str:
+    """Популярные ролики по скорости набора: просмотры/сутки, лайки, отношение к подписчикам."""
+    lines = [f"🔥 <b>{escape(title)}</b>"]
+    if not rows:
+        return lines[0] + "\nНичего не найдено."
+    for r in rows:
+        extras = []
+        if r.like_rate is not None:
+            extras.append(f"лайков {r.like_rate:.1%}")
+        if r.subs_ratio is not None and r.subs_ratio >= 1:
+            extras.append(f"×{r.subs_ratio:.1f} к подписчикам")
+        tail = f" · {', '.join(extras)}" if extras else ""
+        lines.append(
+            f"{human(round(r.views_per_day))}/сут · {human(r.views)} · {_human_age(r.age_days)} · "
+            f"{'shorts' if r.format.value == 'short' else 'long'}{tail}\n"
+            f'  <a href="{r.url}">{escape(r.title)}</a> — {escape(r.channel_title)}'
+            + (f" ({human(r.subs)})" if r.subs else "")
+        )
+    return join_limited(lines)
+
+
+def render_niches(scores: list[NicheScore], days: int, cost_note: str = "") -> str:
+    """Рейтинг ниш: спрос, шанс малого канала, конкуренция, примеры."""
+    lines = [f"🧭 <b>Ниши под свои ролики</b> · свежие за {days} дн.{cost_note}"]
+    if not scores:
+        return lines[0] + "\nНет данных (квота или пустая выдача)."
+    for i, n in enumerate(scores, 1):
+        lines.append(
+            f"\n<b>{i}. {escape(n.topic)}</b> · оценка {n.score:.2f}\n"
+            f"спрос {human(round(n.median_views_per_day))}/сут (медиана) · малые каналы {n.small_channel_share:.0%} · "
+            f"выстрелили выше подписчиков {n.breakout_share:.0%} · крупные {n.big_channel_share:.0%} · "
+            f"shorts {n.shorts_share:.0%}"
+        )
+        if n.note:
+            lines.append(f"<i>{escape(n.note)}</i>")
+        for e in n.examples:
+            subs = f", {human(e.subs)} подп." if e.subs else ""
+            lines.append(
+                f'• <a href="{e.url}">{escape(e.title)}</a> — {human(e.views)} просм. '
+                f"({escape(e.channel_title)}{subs})"
+            )
+    lines.append("\nДобавить в мониторинг: radar niche add ID --name … -q запрос")
+    return join_limited(lines)

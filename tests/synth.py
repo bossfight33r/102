@@ -85,3 +85,7 @@ def mature_channel(
         add_video(db, cid, vid, pub, snaps, fmt)
         ids.append(vid)
     return ids
+
+
+def iso_z(dt: datetime) -> str:
+    return dt.strftime("%Y-%m-%dT%H:%M:%SZ")

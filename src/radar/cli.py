@@ -486,6 +486,113 @@ def me(top: Annotated[int, typer.Option("--top")] = 10) -> None:
 
 
 @app.command()
+def popular(
+    query: Annotated[
+        str | None, typer.Argument(help="Тема; без неё — официальный топ YouTube")
+    ] = None,
+    region: Annotated[str | None, typer.Option("--region", help="Регион, напр. RU")] = None,
+    lang: Annotated[str | None, typer.Option("--lang", help="Язык, напр. ru")] = None,
+    days: Annotated[int, typer.Option("--days", help="Окно для поиска по теме")] = 7,
+    category: Annotated[
+        str | None, typer.Option("--category", help="id категории YouTube (для топа)")
+    ] = None,
+    fmt: Annotated[VideoFormat | None, typer.Option("--format", help="short | long")] = None,
+) -> None:
+    """Популярные ролики по скорости набора просмотров.
+
+    Без запроса — чарт mostPopular (≈2 ед. квоты). С запросом — самые просматриваемые
+    по теме за --days дней (≈102 ед. квоты).
+    """
+    from radar.collect.explore import default_region_language, popular_chart, popular_search
+    from radar.digest.render import plain, render_popular
+    from radar.youtube.client import QuotaExceededError, YouTubeAPIError
+    from radar.youtube.quota import QuotaDeferred
+
+    a = get_app()
+    now = current_time()
+    d_region, d_lang = default_region_language(a)
+    try:
+        if query:
+            rows = popular_search(
+                a.youtube,
+                query,
+                a.config,
+                now,
+                days=days,
+                region=region or d_region,
+                language=lang or d_lang,
+                fmt=fmt,
+            )
+            title = f"Популярное по теме «{query}» за {days} дн."
+        else:
+            rows = popular_chart(
+                a.youtube, a.config, now, region=region or d_region, category_id=category, fmt=fmt
+            )
+            title = f"Топ YouTube · {region or d_region}"
+    except (QuotaDeferred, QuotaExceededError, YouTubeAPIError, ConfigError) as e:
+        fail(str(e))
+        return
+    typer.echo(plain(render_popular(rows, title)))
+
+
+@app.command()
+def explore(
+    topics: Annotated[
+        list[str], typer.Argument(help="Темы-кандидаты; с --expand — одна широкая тема")
+    ],
+    days: Annotated[int | None, typer.Option("--days")] = None,
+    region: Annotated[str | None, typer.Option("--region")] = None,
+    lang: Annotated[str | None, typer.Option("--lang")] = None,
+    fmt: Annotated[VideoFormat | None, typer.Option("--format", help="short | long")] = None,
+    expand: Annotated[
+        bool, typer.Option("--expand", help="LLM разворачивает тему в подниши")
+    ] = False,
+    limit: Annotated[
+        int | None, typer.Option("--limit", help="Максимум тем (по ≈102 ед. квоты)")
+    ] = None,
+) -> None:
+    """Поиск ниш под свои видео: спрос, шанс для малых каналов, конкуренция.
+
+    По каждой теме: search.list + videos.list + channels.list ≈ 102 ед. квоты.
+    Результат — рейтинг и data/exports/niche_explore.yaml.
+    """
+    from radar.collect.explore import expand_topic, explore_cost, run_explore
+    from radar.digest.render import plain, render_niches
+    from radar.llm.base import LLMError
+
+    a = get_app()
+    now = current_time()
+    if limit:
+        a.config.explore.max_topics = limit
+    todo = [t.strip() for t in topics if t.strip()]
+    if expand:
+        if not a.has_llm():
+            fail("--expand нужен LLM (LLM_PROVIDER/LLM_API_KEY) и analysis.enabled: true")
+            return
+        try:
+            todo = expand_topic(a.llm, todo[0], a.profile, a.config, a.db, now)
+        except (LLMError, ConfigError) as e:
+            fail(str(e))
+            return
+        typer.echo("Подниши от LLM: " + "; ".join(todo))
+    n = min(len(todo), a.config.explore.max_topics)
+    left = a.planner.status(now)["remaining"]
+    cost = explore_cost(a.config, len(todo))
+    typer.echo(f"Проверяю тем: {n} · ≈{cost} ед. квоты (осталось {left})")
+    try:
+        scores, used_days = run_explore(
+            a, todo, now, region=region, language=lang, days=days, fmt=fmt
+        )
+    except ConfigError as e:
+        fail(str(e))
+        return
+    typer.echo(plain(render_niches(scores, used_days)))
+    if len(scores) < n:
+        typer.echo(f"⚠️ Квоты хватило на {len(scores)} из {n} тем — остальные позже (radar quota).")
+    typer.echo(f"Сохранено: {a.settings.exports_dir}/niche_explore.yaml")
+
+
+@app.command()
 def topics() -> None:
     """Темы, отмеченные кнопкой «В темы» (data/exports/topic_suggestions.yaml)."""
     a = get_app()

@@ -51,6 +51,15 @@ class YouTubeClient(Protocol):
 
     def videos_list(self, ids: list[str]) -> dict[str, Any]: ...
 
+    def videos_most_popular(
+        self,
+        *,
+        region_code: str,
+        category_id: str | None = None,
+        max_results: int = 50,
+        page_token: str | None = None,
+    ) -> dict[str, Any]: ...
+
     def search_list(
         self,
         *,
@@ -318,6 +327,28 @@ class YouTube:
                     continue
                 out.append(parse_video(item, self.formats))
         return out
+
+    def most_popular(
+        self,
+        *,
+        purpose: str,
+        now: datetime,
+        region_code: str,
+        category_id: str | None = None,
+        max_results: int = 50,
+    ) -> list[tuple[Video, VideoStats]]:
+        """Официальный топ YouTube (videos.list chart=mostPopular): 1 ед. за 50 видео."""
+        resp = self._call(
+            "videos.list",
+            purpose,
+            now,
+            lambda: self.client.videos_most_popular(
+                region_code=region_code, category_id=category_id, max_results=min(max_results, 50)
+            ),
+        )
+        return [
+            parse_video(item, self.formats) for item in resp.get("items", []) if "snippet" in item
+        ]
 
     def search(
         self,
